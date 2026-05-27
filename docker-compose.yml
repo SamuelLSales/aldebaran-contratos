@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aldebaran_backend
+    restart: unless-stopped
+    volumes:
+      # Esse mapeamento garante que o banco de dados e os arquivos CSV gerados 
+      # sejam salvos na pasta /backend da VM hospedeira e nunca sejam perdidos.
+      - ./backend/aldebaran.db:/app/aldebaran.db
+      - ./backend/historico_alteracoes.csv:/app/historico_alteracoes.csv
+    ports:
+      # Expomos a porta 8000 internamente para o frontend, 
+      # mas também a abrimos externamente caso queira acessar a API diretamente.
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aldebaran_frontend
+    restart: unless-stopped
+    ports:
+      # O Nginx vai servir o frontend na porta 80.
+      - "80:80"
+    depends_on:
+      - backend
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: aldebaran_ngrok
+    restart: unless-stopped
+    command:
+      - "http"
+      - "frontend:80"
+      - "--domain=antsy-sprang-harness.ngrok-free.dev"
+    environment:
+      - NGROK_AUTHTOKEN=3Cwygh7yAdbZ16II84qSrp5Nhud_6wSxuM8xxXSiiLaiFfTh6
+    depends_on:
+      - frontend

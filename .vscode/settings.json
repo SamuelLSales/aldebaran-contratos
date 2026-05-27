@@ -1,0 +1,12 @@
+{
+  "python.analysis.extraPaths": [
+    "./backend",
+    "./backend/app"
+  ],
+  "python.autoComplete.extraPaths": [
+    "./backend",
+    "./backend/app"
+  ],
+  "python.defaultInterpreterPath": "backend/venv/Scripts/python.exe",
+  "git.ignoreLimitWarning": true
+}
