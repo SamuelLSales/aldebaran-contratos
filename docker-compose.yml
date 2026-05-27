@@ -38,6 +38,6 @@ services:
       - "frontend:80"
       - "--domain=antsy-sprang-harness.ngrok-free.dev"
     environment:
-      - NGROK_AUTHTOKEN=3Cwygh7yAdbZ16II84qSrp5Nhud_6wSxuM8xxXSiiLaiFfTh6
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
     depends_on:
       - frontend
