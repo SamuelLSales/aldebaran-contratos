@@ -107,11 +107,4 @@ Caso prefira configurar e rodar cada parte manualmente, siga os passos abaixo no
    ```
 4. O frontend estará acessível em: [http://localhost:5173](http://localhost:5173).
 
----
 
-## 🌐 Acesso pela Rede Local
-
-Como o sistema é feito para rodar na rede interna local, qualquer pessoa na mesma rede Wi-Fi ou cabo pode acessar o sistema usando o IP do computador que está servindo o sistema.
-
-Exemplo: `http://192.168.1.50:5173`
-*(Substitua `192.168.1.50` pelo IP real da máquina servidora obtido com o comando `ipconfig` no terminal).*
