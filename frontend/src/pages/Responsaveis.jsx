@@ -1,467 +1,511 @@
-import React, { useState, useEffect } from 'react';
-import { 
- Users, 
- Plus, 
- Edit3, 
- Trash2, 
- UserCheck, 
- UserX,
- Briefcase, 
- ShieldAlert,
- Save, 
- X,
- Layers,
- MapPin,
- FileText
-} from 'lucide-react';
-import { 
- getResponsaveis, 
- createResponsavel, 
- updateResponsavel, 
- deleteResponsavel, 
- getContratos 
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Pencil, Trash2, UserX, ShieldAlert, Search } from 'lucide-react';
+import {
+  getResponsaveis,
+  createResponsavel,
+  updateResponsavel,
+  deleteResponsavel,
+  getContratos,
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import Button from '../components/common/Button';
+import Modal from '../components/common/Modal';
+import ConfirmDialog from '../components/common/ConfirmDialog';
+import AreaBadge from '../components/AreaBadge';
+
+const AREAS = ['Topografia', 'Geologia', 'Meio Ambiente', 'Administrativo', 'Todas'];
+
+const AREA_LABEL = { Todas: 'Multiárea' };
+
+const INPUT_CLASS =
+  'w-full h-10 px-3 bg-white border border-slate-300 rounded-md text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:outline-none focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/20';
+
+const pluralizar = (n, singular, plural) => `${n} ${n === 1 ? singular : plural}`;
+
+const obterIniciais = (nome) => {
+  if (!nome) return 'U';
+  const partes = nome.trim().split(/\s+/);
+  if (partes.length > 1) return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  return nome.slice(0, 2).toUpperCase();
+};
 
 const Responsaveis = () => {
- const { user } = useAuth();
- const [responsaveis, setResponsaveis] = useState([]);
- const [contratos, setContratos] = useState([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState(null);
- 
- // Estados do Modal
- const [modalAberto, setModalAberto] = useState(false);
- const [editandoId, setEditandoId] = useState(null);
- 
- // Estado do Formulário
- const [form, setForm] = useState({
- nome: '',
- cargo: 'Campo',
- area: 'Topografia'
- });
- 
- const [erroForm, setErroForm] = useState('');
+  const { user } = useAuth();
+  const toast = useToast();
+  const isAdmin = user?.role === 'admin';
 
- const carregarDados = async () => {
- try {
- setLoading(true);
- const [listaResponsaveis, listaContratos] = await Promise.all([
- getResponsaveis(),
- getContratos()
- ]);
- setResponsaveis(listaResponsaveis);
- setContratos(listaContratos);
- setError(null);
- } catch (err) {
- console.error('Erro ao carregar colaboradores:', err);
- setError('Erro ao se conectar com o servidor local.');
- } finally {
- setLoading(false);
- }
- };
+  const [responsaveis, setResponsaveis] = useState([]);
+  const [contratos, setContratos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
- useEffect(() => {
- carregarDados();
- }, []);
+  // Filtros
+  const [busca, setBusca] = useState('');
+  const [filtroArea, setFiltroArea] = useState('todos');
 
- // Avatar com iniciais
- const obterIniciais = (nome) => {
- if (!nome) return 'U';
- const partes = nome.split(' ');
- if (partes.length > 1) {
- return (partes[0][0] + partes[1][0]).toUpperCase();
- }
- return nome.slice(0, 2).toUpperCase();
- };
+  // Modal de criação/edição
+  const [modalAberto, setModalAberto] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
+  const [form, setForm] = useState({ nome: '', cargo: 'Campo', area: 'Topografia' });
+  const [erroForm, setErroForm] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
- // --- ESTATÍSTICAS E CONSOLIDADOS ---
- 
- // Contratos Ativos de um Responsável
- const obterContratosAtivosCount = (nomeResponsavel) => {
- // Retorna a quantidade de contratos em andamento onde este colaborador é Diretor
- // ou possui pelo menos uma etapa pendente (progresso < 100%)
- const contratosEnvolvidos = contratos.filter(c => {
- if (c.status === 'concluido') return false;
- 
- const ehDiretor = c.diretor_projeto === nomeResponsavel;
- 
- const possuiEtapaPendente = c.fases?.some(f => 
- f.etapas?.some(e => e.responsavel === nomeResponsavel && e.progresso < 1.0)
- );
+  // Confirmação de exclusão
+  const [aExcluir, setAExcluir] = useState(null);
+  const [excluindo, setExcluindo] = useState(false);
 
- return ehDiretor || possuiEtapaPendente;
- });
+  const carregarDados = async () => {
+    try {
+      setLoading(true);
+      const [listaResponsaveis, listaContratos] = await Promise.all([
+        getResponsaveis(),
+        getContratos(),
+      ]);
+      setResponsaveis(listaResponsaveis);
+      setContratos(listaContratos);
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao carregar colaboradores:', err);
+      setError('Não foi possível conectar ao servidor. Verifique se o backend está em execução.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
- return contratosEnvolvidos.length;
- };
+  useEffect(() => {
+    carregarDados();
+  }, []);
 
- // Contagem de Etapas Vinculadas (Total para o alerta de exclusão)
- const obterEtapasVinculadasCount = (nomeResponsavel) => {
- let totalEtapas = 0;
- contratos.forEach(c => {
- c.fases?.forEach(f => {
- f.etapas?.forEach(e => {
- if (e.responsavel === nomeResponsavel) {
- totalEtapas++;
- }
- });
- });
- });
- return totalEtapas;
- };
+  // Contratos ativos e etapas vinculadas por colaborador (calculado uma única vez)
+  const alocacao = useMemo(() => {
+    const mapa = {};
+    const get = (nome) => (mapa[nome] ||= { contratos: new Set(), etapas: 0 });
 
- // Estatísticas de Contagem por Área
- const totalTopografia = responsaveis.filter(r => r.area === 'Topografia' || r.area === 'Todas').length;
- const totalGeologia = responsaveis.filter(r => r.area === 'Geologia' || r.area === 'Todas').length;
- const totalAdministrativo = responsaveis.filter(r => r.area === 'Administrativo' || r.area === 'Todas').length;
+    contratos.forEach((c) => {
+      const ativo = c.status !== 'concluido';
+      if (ativo && c.diretor_projeto) get(c.diretor_projeto).contratos.add(c.id);
 
- // --- OPERAÇÕES ---
+      c.fases?.forEach((f) =>
+        f.etapas?.forEach((e) => {
+          if (!e.responsavel) return;
+          const aloc = get(e.responsavel);
+          aloc.etapas++;
+          if (ativo && (e.progresso || 0) < 1.0) aloc.contratos.add(c.id);
+        })
+      );
+    });
+    return mapa;
+  }, [contratos]);
 
- // Abrir Criar
- const abrirCriarModal = () => {
- setEditandoId(null);
- setForm({ nome: '', cargo: 'Campo', area: 'Topografia' });
- setErroForm('');
- setModalAberto(true);
- };
+  const contratosAtivos = (nome) => alocacao[nome]?.contratos.size || 0;
+  const etapasVinculadas = (nome) => alocacao[nome]?.etapas || 0;
 
- // Abrir Editar
- const abrirEditarModal = (colaborador) => {
- setEditandoId(colaborador.id);
- setForm({
- nome: colaborador.nome,
- cargo: colaborador.cargo,
- area: colaborador.area
- });
- setErroForm('');
- setModalAberto(true);
- };
+  // Indicadores
+  const totalEquipe = responsaveis.length;
+  const comAlocacao = responsaveis.filter((r) => contratosAtivos(r.nome) > 0).length;
+  const semAlocacao = totalEquipe - comAlocacao;
 
- // Salvar Formulário (Criar ou Editar)
- const handleSalvar = async (e) => {
- e.preventDefault();
- setErroForm('');
+  // Contagem por área (exclusiva — cada pessoa conta em uma única área)
+  const contagemPorArea = useMemo(() => {
+    const c = {};
+    responsaveis.forEach((r) => {
+      c[r.area] = (c[r.area] || 0) + 1;
+    });
+    return c;
+  }, [responsaveis]);
 
- if (!form.nome.trim()) {
- setErroForm('O nome do colaborador é obrigatório.');
- return;
- }
+  const listaFiltrada = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return responsaveis.filter((r) => {
+      if (filtroArea !== 'todos' && r.area !== filtroArea) return false;
+      if (!termo) return true;
+      return r.nome.toLowerCase().includes(termo) || (r.cargo || '').toLowerCase().includes(termo);
+    });
+  }, [responsaveis, busca, filtroArea]);
 
- try {
- if (editandoId) {
- // Editar colaborador existente
- await updateResponsavel(editandoId, form);
- } else {
- // Criar novo
- await createResponsavel(form);
- }
- setModalAberto(false);
- carregarDados();
- } catch (err) {
- console.error('Erro ao salvar colaborador:', err);
- if (err.response && err.response.data && err.response.data.detail) {
- setErroForm(err.response.data.detail);
- } else {
- setErroForm('Erro ao salvar colaborador. Verifique a conexão.');
- }
- }
- };
+  // Operações
+  const abrirCriarModal = () => {
+    setEditandoId(null);
+    setForm({ nome: '', cargo: 'Campo', area: 'Topografia' });
+    setErroForm('');
+    setModalAberto(true);
+  };
 
- // Excluir Colaborador
- const handleExcluir = async (colaborador) => {
- const etapasVinculadas = obterEtapasVinculadasCount(colaborador.nome);
- 
- let mensagemConfirmacao = `Deseja realmente remover o colaborador "${colaborador.nome}" da equipe?`;
- 
- if (etapasVinculadas > 0) {
- mensagemConfirmacao = `ATENÇÃO: Este responsável está vinculado a ${etapasVinculadas} etapa(s) de contratos ativos!\nRemovê-lo fará com que essas etapas percam a associação com seu nome.\nDeseja realmente continuar?`;
- }
+  const abrirEditarModal = (colaborador) => {
+    setEditandoId(colaborador.id);
+    setForm({ nome: colaborador.nome, cargo: colaborador.cargo, area: colaborador.area });
+    setErroForm('');
+    setModalAberto(true);
+  };
 
- if (window.confirm(mensagemConfirmacao)) {
- try {
- await deleteResponsavel(colaborador.id);
- carregarDados();
- } catch (err) {
- console.error('Erro ao excluir colaborador:', err);
- alert('Erro ao excluir o colaborador da equipe.');
- }
- }
- };
+  const fecharModal = () => setModalAberto(false);
 
- if (loading && responsaveis.length === 0) {
- return (
- <div className="flex items-center justify-center min-h-screen bg-aldebaran-dark text-theme-strong">
- <div className="flex flex-col items-center gap-4">
- <div className="w-12 h-12 border-4 border-aldebaran-gold border-t-transparent rounded-full animate-spin"></div>
- <p className="text-theme-weak font-medium">Carregando quadro de colaboradores...</p>
- </div>
- </div>
- );
- }
+  const handleSalvar = async (e) => {
+    e.preventDefault();
+    setErroForm('');
 
- return (
- <div className="p-6 space-y-6 max-w-[1200px] mx-auto animate-fade-in text-theme-strong">
- 
- {/* CABEÇALHO */}
- <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-aldebaran-border pb-4">
- <div>
- <h1 className="text-2xl font-extrabold flex items-center gap-3">
- <Users className="text-aldebaran-goldDark w-8 h-8" />
- Gerenciamento de Equipe
- </h1>
- <p className="text-theme-weak text-xs mt-1">
- Cadastre e gerencie a lista de colaboradores qualificados para as atividades de campo e escritório
- </p>
- </div>
+    if (!form.nome.trim()) {
+      setErroForm('O nome do colaborador é obrigatório.');
+      return;
+    }
 
- {user?.role === 'admin' && (
- <button
- onClick={abrirCriarModal}
- className="px-4 py-2 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-sm transition-all shadow-sm hover:scale-[1.02] flex items-center gap-2 self-start sm:self-auto"
- >
- <Plus className="w-4 h-4" />
- Novo Responsável
- </button>
- )}
- </div>
+    try {
+      setSalvando(true);
+      if (editandoId) {
+        await updateResponsavel(editandoId, form);
+        toast.success('Colaborador atualizado com sucesso.');
+      } else {
+        await createResponsavel(form);
+        toast.success('Colaborador cadastrado com sucesso.');
+      }
+      setModalAberto(false);
+      carregarDados();
+    } catch (err) {
+      console.error('Erro ao salvar colaborador:', err);
+      setErroForm(err.response?.data?.detail || 'Erro ao salvar colaborador. Verifique a conexão.');
+    } finally {
+      setSalvando(false);
+    }
+  };
 
- {/* ERROS DE CONEXÃO */}
- {error && (
- <div className="bg-transparent text-rose-500 border border-rose-500/20 rounded-none p-4 flex items-start gap-3">
- <ShieldAlert className="text-rose-400 w-5 h-5 shrink-0 mt-0.5" />
- <p className="text-rose-300 text-xs">{error}</p>
- </div>
- )}
+  const confirmarExclusao = async () => {
+    try {
+      setExcluindo(true);
+      await deleteResponsavel(aExcluir.id);
+      toast.success(`${aExcluir.nome} foi removido(a) da equipe.`);
+      setAExcluir(null);
+      carregarDados();
+    } catch (err) {
+      console.error('Erro ao excluir colaborador:', err);
+      toast.error('Não foi possível excluir o colaborador.');
+    } finally {
+      setExcluindo(false);
+    }
+  };
 
- {/* CARDS DE RESUMO POR ÁREA */}
- <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
- 
- {/* Topografia */}
- <div className="bg-aldebaran-gray border border-aldebaran-border p-5 rounded-none flex items-center justify-between shadow-sm">
- <div>
- <span className="text-xs font-semibold uppercase text-theme-weak tracking-wider">Equipe Topografia</span>
- <h2 className="text-3xl font-extrabold text-aldebaran-gold mt-1">{totalTopografia}</h2>
- </div>
- <div className="p-3 bg-aldebaran-gold/10 rounded-none text-aldebaran-gold">
- <MapPin className="w-5 h-5" />
- </div>
- </div>
+  if (loading && responsaveis.length === 0) {
+    return (
+      <div className="p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto" aria-busy="true">
+        <div className="h-8 w-72 bg-slate-200/70 rounded animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-24 bg-white border border-slate-200 rounded-lg animate-pulse" />
+          ))}
+        </div>
+        <div className="h-80 bg-white border border-slate-200 rounded-lg animate-pulse" />
+      </div>
+    );
+  }
 
- {/* Geologia */}
- <div className="bg-aldebaran-gray border border-aldebaran-border p-5 rounded-none flex items-center justify-between shadow-sm">
- <div>
- <span className="text-xs font-semibold uppercase text-theme-weak tracking-wider">Equipe Geologia</span>
- <h2 className="text-3xl font-extrabold text-yellow-400 mt-1">{totalGeologia}</h2>
- </div>
- <div className="p-3 bg-transparent text-yellow-500 rounded-none text-yellow-400">
- <Layers className="w-5 h-5" />
- </div>
- </div>
+  const indicadores = [
+    { label: 'Colaboradores', valor: totalEquipe, apoio: 'cadastrados na equipe' },
+    { label: 'Alocados', valor: comAlocacao, apoio: 'com contratos ativos' },
+    { label: 'Disponíveis', valor: semAlocacao, apoio: 'sem contratos ativos' },
+  ];
 
- {/* Administrativo */}
- <div className="bg-aldebaran-gray border border-aldebaran-border p-5 rounded-none flex items-center justify-between shadow-sm">
- <div>
- <span className="text-xs font-semibold uppercase text-theme-weak tracking-wider">Administrativo / Outros</span>
- <h2 className="text-3xl font-extrabold text-emerald-400 mt-1">{totalAdministrativo}</h2>
- </div>
- <div className="p-3 bg-transparent text-emerald-500 rounded-none text-emerald-400">
- <FileText className="w-5 h-5" />
- </div>
- </div>
+  const chips = [
+    { id: 'todos', label: 'Todos', total: totalEquipe },
+    ...AREAS.map((a) => ({ id: a, label: AREA_LABEL[a] || a, total: contagemPorArea[a] || 0 })),
+  ];
 
- </div>
+  return (
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto animate-fade-in text-slate-900">
+      {/* CABEÇALHO */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Equipe técnica</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Profissionais responsáveis por campo, escritório e coordenação dos contratos.
+          </p>
+        </div>
 
- {/* LISTA DE RESPONSÁVEIS */}
- <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none shadow-sm overflow-hidden">
- <div className="overflow-x-auto">
- {responsaveis.length > 0 ? (
- <table className="w-full text-left border-collapse">
- <thead>
- <tr className="bg-aldebaran-dark/40 border-b border-aldebaran-border text-xs font-semibold uppercase tracking-wider text-theme-weak">
- <th className="py-4 px-5">Colaborador</th>
- <th className="py-4 px-5">Cargo / Função</th>
- <th className="py-4 px-5">Área de Atuação</th>
- <th className="py-4 px-5 text-center">Contratos Ativos</th>
- {user?.role === 'admin' && <th className="py-4 px-5 text-center">Ações</th>}
- </tr>
- </thead>
- <tbody className="divide-y divide-slate-800/60 text-sm">
- {responsaveis.map((resp) => {
- const contratosAtivos = obterContratosAtivosCount(resp.nome);
- return (
- <tr key={resp.id} className="hover:bg-aldebaran-gray/20 transition-colors">
- 
- {/* Avatar e Nome */}
- <td className="py-4 px-5">
- <div className="flex items-center gap-3">
- <div className="w-9 h-9 rounded-full bg-aldebaran-gold text-white border border-aldebaran-border flex items-center justify-center font-bold text-xs select-none">
- {obterIniciais(resp.nome)}
- </div>
- <span className="font-bold text-theme-strong text-base">{resp.nome}</span>
- </div>
- </td>
+        {isAdmin && (
+          <Button icon={Plus} onClick={abrirCriarModal} className="self-start sm:self-auto">
+            Novo colaborador
+          </Button>
+        )}
+      </div>
 
- {/* Cargo */}
- <td className="py-4 px-5">
- <span className="text-theme-normal font-semibold">{resp.cargo}</span>
- </td>
+      {/* ERRO DE CONEXÃO */}
+      {error && (
+        <div
+          role="alert"
+          className="bg-red-50 text-red-800 border border-red-200 rounded-lg p-4 flex items-start gap-3"
+        >
+          <ShieldAlert className="text-red-600 w-5 h-5 shrink-0 mt-0.5" />
+          <div className="flex-1 text-sm">{error}</div>
+          <Button variant="secondary" size="sm" onClick={carregarDados}>
+            Tentar novamente
+          </Button>
+        </div>
+      )}
 
- {/* Área */}
- <td className="py-4 px-5">
- <span className={`px-2 py-0.5 rounded-none text-xs font-bold ${
- resp.area === 'Topografia' 
- ? 'bg-aldebaran-gold/10 text-aldebaran-gold' 
- : resp.area === 'Geologia'
- ? 'bg-transparent text-yellow-500 text-yellow-400'
- : resp.area === 'Administrativo'
- ? 'bg-transparent text-emerald-500 text-emerald-400'
- : 'bg-aldebaran-dark0/10 text-theme-weak'
- }`}>
- {resp.area}
- </span>
- </td>
+      {/* INDICADORES */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {indicadores.map((i) => (
+          <div key={i.label} className="bg-white border border-slate-200 rounded-lg p-5 shadow-card">
+            <p className="text-sm font-medium text-slate-500">{i.label}</p>
+            <p className="text-3xl font-semibold text-slate-900 mt-1 tabular-nums">{i.valor}</p>
+            <p className="text-xs text-slate-500 mt-1">{i.apoio}</p>
+          </div>
+        ))}
+      </div>
 
- {/* Contratos Ativos */}
- <td className="py-4 px-5 text-center font-mono">
- {contratosAtivos > 0 ? (
- <span className="px-2 py-0.5 text-aldebaran-gold text-xs font-semibold rounded-none font-bold">
- {contratosAtivos} ativo(s)
- </span>
- ) : (
- <span className="text-theme-weak italic text-xs">Sem projetos</span>
- )}
- </td>
+      {/* TABELA */}
+      <div className="bg-white border border-slate-200 rounded-lg shadow-card overflow-hidden">
+        {/* Barra de ferramentas */}
+        <div className="p-4 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Filtrar por área">
+            {chips.map((c) => {
+              const ativo = filtroArea === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setFiltroArea(c.id)}
+                  aria-pressed={ativo}
+                  className={`h-8 px-3 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40 ${
+                    ativo
+                      ? 'bg-brand-primary-light text-brand-primary'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {c.label}
+                  <span className="ml-1.5 text-xs tabular-nums text-slate-500">{c.total}</span>
+                </button>
+              );
+            })}
+          </div>
 
- {/* Ações */}
- {user?.role === 'admin' && (
- <td className="py-4 px-5">
- <div className="flex items-center justify-center gap-2">
- <button
- onClick={() => abrirEditarModal(resp)}
- className="p-2 hover:bg-aldebaran-gray text-theme-weak hover:text-theme-normal rounded-none transition"
- title="Editar Dados"
- >
- <Edit3 className="w-4 h-4" />
- </button>
- 
- {/* Impede a exclusão do "Robson Ribeiro" padrão se desejado, ou deixa livre com aviso */}
- <button
- onClick={() => handleExcluir(resp)}
- className="p-2 hover:bg-transparent text-rose-500 text-theme-weak hover:text-rose-400 rounded-none transition"
- title="Remover Colaborador"
- >
- <Trash2 className="w-4 h-4" />
- </button>
- </div>
- </td>
- )}
+          <div className="relative w-full lg:w-72">
+            <Search
+              className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              type="search"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome ou cargo"
+              aria-label="Buscar colaborador"
+              className={`${INPUT_CLASS} pl-9 h-9`}
+            />
+          </div>
+        </div>
 
- </tr>
- );
- })}
- </tbody>
- </table>
- ) : (
- <div className="py-12 flex flex-col items-center justify-center text-theme-weak gap-3">
- <UserX className="w-12 h-12 text-theme-normal " />
- <p className="text-sm font-medium">Nenhum colaborador cadastrado. Clique em "+ Novo Responsável".</p>
- </div>
- )}
- </div>
- </div>
+        <div className="overflow-x-auto">
+          {listaFiltrada.length > 0 ? (
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs uppercase font-semibold tracking-wider text-slate-500">
+                  <th scope="col" className="py-3 px-5">Colaborador</th>
+                  <th scope="col" className="py-3 px-5">Cargo</th>
+                  <th scope="col" className="py-3 px-5">Área</th>
+                  <th scope="col" className="py-3 px-5">Contratos ativos</th>
+                  {isAdmin && <th scope="col" className="py-3 px-5 text-right"><span className="sr-only">Ações</span></th>}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {listaFiltrada.map((resp) => {
+                  const ativos = contratosAtivos(resp.nome);
+                  return (
+                    <tr key={resp.id} className="group hover:bg-slate-50 transition-colors duration-150">
+                      <td className="py-3.5 px-5">
+                        <div className="flex items-center gap-3">
+                          <div
+                            aria-hidden="true"
+                            className="w-8 h-8 rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center font-semibold text-xs select-none"
+                          >
+                            {obterIniciais(resp.nome)}
+                          </div>
+                          <span className="font-medium text-slate-900">{resp.nome}</span>
+                        </div>
+                      </td>
 
- {/* ======================================================== */}
- {/* 🛡️ MODAL ADICIONAR / EDITAR RESPONSÁVEL */}
- {modalAberto && (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
- <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none w-full max-w-md overflow-hidden shadow-md">
- <div className="p-5 border-b border-aldebaran-border flex justify-between items-center bg-aldebaran-dark/40">
- <h3 className="text-base font-bold text-theme-strong flex items-center gap-2">
- {editandoId ? <Edit3 className="w-5 h-5 text-aldebaran-goldDark" /> : <Plus className="w-5 h-5 text-aldebaran-goldDark" />}
- {editandoId ? 'Editar Colaborador' : 'Adicionar Novo Colaborador'}
- </h3>
- <button 
- onClick={() => setModalAberto(false)}
- className="text-theme-weak hover:text-theme-strong transition"
- >
- <X className="w-5 h-5" />
- </button>
- </div>
+                      <td className="py-3.5 px-5 text-slate-600">{resp.cargo}</td>
 
- <form onSubmit={handleSalvar} className="p-5 space-y-4">
- 
- {erroForm && (
- <div className="bg-transparent text-rose-500 border border-rose-500/20 rounded-none p-3 flex items-start gap-2 text-rose-400 text-xs">
- <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
- <p>{erroForm}</p>
- </div>
- )}
+                      <td className="py-3.5 px-5">
+                        <AreaBadge area={resp.area} />
+                      </td>
 
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Nome Completo *</label>
- <input 
- type="text" 
- required
- placeholder="ex: Robson Ribeiro"
- value={form.nome}
- onChange={(e) => setForm({...form, nome: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
+                      <td className="py-3.5 px-5 tabular-nums">
+                        {ativos > 0 ? (
+                          <span className="text-slate-900 font-medium">{pluralizar(ativos, 'contrato', 'contratos')}</span>
+                        ) : (
+                          <span className="text-slate-500">Disponível</span>
+                        )}
+                      </td>
 
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Cargo / Função *</label>
- <select 
- value={form.cargo}
- onChange={(e) => setForm({...form, cargo: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold cursor-pointer"
- >
- <option value="Diretor" className="bg-aldebaran-dark">Diretor</option>
- <option value="Coordenador" className="bg-aldebaran-dark">Coordenador</option>
- <option value="Campo" className="bg-aldebaran-dark">Técnico de Campo</option>
- <option value="Financeiro" className="bg-aldebaran-dark">Financeiro</option>
- <option value="Outro" className="bg-aldebaran-dark">Outro</option>
- </select>
- </div>
+                      {isAdmin && (
+                        <td className="py-3.5 px-5 text-right">
+                          <div className="inline-flex items-center gap-1 opacity-60 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => abrirEditarModal(resp)}
+                              aria-label={`Editar ${resp.nome}`}
+                              title="Editar"
+                              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40"
+                            >
+                              <Pencil className="w-[18px] h-[18px]" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAExcluir(resp)}
+                              aria-label={`Remover ${resp.nome}`}
+                              title="Remover"
+                              className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+                            >
+                              <Trash2 className="w-[18px] h-[18px]" />
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <div className="py-16 flex flex-col items-center justify-center gap-2 text-center">
+              <UserX className="w-6 h-6 text-slate-400" aria-hidden="true" />
+              <p className="text-sm font-medium text-slate-700">
+                {responsaveis.length === 0 ? 'Nenhum colaborador cadastrado' : 'Nenhum resultado para os filtros aplicados'}
+              </p>
+              <p className="text-sm text-slate-500">
+                {responsaveis.length === 0
+                  ? isAdmin ? 'Use “Novo colaborador” para começar.' : 'Peça a um administrador para cadastrar a equipe.'
+                  : 'Ajuste a busca ou limpe o filtro de área.'}
+              </p>
+              {responsaveis.length > 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => {
+                    setBusca('');
+                    setFiltroArea('todos');
+                  }}
+                >
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
 
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Área Principal *</label>
- <select 
- value={form.area}
- onChange={(e) => setForm({...form, area: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold cursor-pointer"
- >
- <option value="Topografia" className="bg-aldebaran-dark">Topografia</option>
- <option value="Geologia" className="bg-aldebaran-dark">Geologia</option>
- <option value="Administrativo" className="bg-aldebaran-dark">Administrativo</option>
- <option value="Todas" className="bg-aldebaran-dark">Todas as áreas</option>
- </select>
- </div>
+        {listaFiltrada.length > 0 && (
+          <div className="px-5 py-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500">
+            Exibindo {listaFiltrada.length} de {totalEquipe} colaboradores
+          </div>
+        )}
+      </div>
 
- <div className="flex justify-end gap-3 pt-3 border-t border-aldebaran-border">
- <button 
- type="button" 
- onClick={() => setModalAberto(false)}
- className="px-4 py-2 bg-transparent border border-aldebaran-border hover:bg-aldebaran-dark text-theme-normal rounded-none text-xs font-bold transition"
- >
- Cancelar
- </button>
- <button 
- type="submit" 
- className="px-4 py-2 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-xs transition flex items-center gap-1.5"
- >
- <Save className="w-3.5 h-3.5" />
- {editandoId ? 'Salvar Alterações' : 'Cadastrar'}
- </button>
- </div>
- </form>
- </div>
- </div>
- )}
+      {/* MODAL: ADICIONAR / EDITAR */}
+      {modalAberto && (
+        <Modal
+          title={editandoId ? 'Editar colaborador' : 'Novo colaborador'}
+          icon={editandoId ? Pencil : Plus}
+          onClose={fecharModal}
+        >
+          <form onSubmit={handleSalvar} noValidate>
+            <div className="p-5 space-y-4">
+              {erroForm && (
+                <div role="alert" className="bg-red-50 border border-red-200 rounded-md p-3 flex items-start gap-2 text-red-700 text-sm">
+                  <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p>{erroForm}</p>
+                </div>
+              )}
 
- </div>
- );
+              <div>
+                <label htmlFor="resp-nome" className="text-sm font-medium text-slate-700 block mb-1.5">
+                  Nome completo
+                </label>
+                <input
+                  id="resp-nome"
+                  type="text"
+                  placeholder="Ex.: Maria da Silva"
+                  value={form.nome}
+                  onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                  className={INPUT_CLASS}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="resp-cargo" className="text-sm font-medium text-slate-700 block mb-1.5">
+                    Cargo
+                  </label>
+                  <select
+                    id="resp-cargo"
+                    value={form.cargo}
+                    onChange={(e) => setForm({ ...form, cargo: e.target.value })}
+                    className={`${INPUT_CLASS} cursor-pointer`}
+                  >
+                    <option value="Diretor">Diretor</option>
+                    <option value="Coordenador">Coordenador</option>
+                    <option value="Campo">Técnico de Campo</option>
+                    <option value="Escritório">Técnico de Escritório</option>
+                    <option value="Financeiro">Financeiro / Administrativo</option>
+                    <option value="Outro">Outro</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="resp-area" className="text-sm font-medium text-slate-700 block mb-1.5">
+                    Área principal
+                  </label>
+                  <select
+                    id="resp-area"
+                    value={form.area}
+                    onChange={(e) => setForm({ ...form, area: e.target.value })}
+                    className={`${INPUT_CLASS} cursor-pointer`}
+                  >
+                    {AREAS.map((a) => (
+                      <option key={a} value={a}>
+                        {a === 'Todas' ? 'Todas as áreas (multiárea)' : a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+              <Button type="button" variant="secondary" onClick={fecharModal}>
+                Cancelar
+              </Button>
+              <Button type="submit" loading={salvando}>
+                {editandoId ? 'Salvar alterações' : 'Cadastrar'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* CONFIRMAÇÃO DE EXCLUSÃO */}
+      {aExcluir && (
+        <ConfirmDialog
+          title="Remover colaborador"
+          confirmLabel="Remover"
+          danger
+          loading={excluindo}
+          onConfirm={confirmarExclusao}
+          onCancel={() => setAExcluir(null)}
+        >
+          <p>
+            Deseja remover <strong className="text-slate-900">{aExcluir.nome}</strong> da equipe técnica?
+          </p>
+          {etapasVinculadas(aExcluir.nome) > 0 && (
+            <p className="mt-3 p-3 rounded-md bg-amber-50 border border-amber-200 text-amber-900">
+              Atenção: há {pluralizar(etapasVinculadas(aExcluir.nome), 'etapa vinculada', 'etapas vinculadas')} a esta
+              pessoa. Elas ficarão sem responsável nominal.
+            </p>
+          )}
+        </ConfirmDialog>
+      )}
+    </div>
+  );
 };
 
 export default Responsaveis;

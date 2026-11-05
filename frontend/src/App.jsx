@@ -8,38 +8,63 @@ import NovoContrato from './pages/NovoContrato';
 import Responsaveis from './pages/Responsaveis';
 import Contratos from './pages/Contratos';
 import Login from './pages/Login';
+import Landing from './pages/Landing';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 
 // Componente para rotas protegidas
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
-  
+
   if (loading) {
-    return <div className="min-h-screen bg-aldebaran-dark flex items-center justify-center text-amber-500 font-bold tracking-widest uppercase text-sm">Carregando...</div>;
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-medium text-xs">Carregando ProjectSight...</p>
+      </div>
+    );
   }
-  
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return children;
 }
 
-// Layout principal do sistema
-function MainLayout() {
+// Rota raiz: se autenticado mostra o MainLayout + Dashboard; se não autenticado, mostra a Landing do ProjectSight
+function HomeOrLanding() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-3">
+        <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-slate-500 font-medium text-xs">Carregando ProjectSight...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
+
   return (
-    <div className="flex bg-aldebaran-dark min-h-screen text-slate-100 font-sans">
-      {/* Barra Lateral Esquerda */}
+    <MainLayout>
+      <Dashboard />
+    </MainLayout>
+  );
+}
+
+// Layout principal do sistema
+function MainLayout({ children }) {
+  return (
+    <div className="flex bg-background min-h-screen text-slate-900 font-sans">
       <Sidebar />
-
-      {/* Corpo Principal do Sistema */}
-      <div className="flex-1 flex flex-col min-w-0 bg-aldebaran-dark">
-        {/* Cabeçalho Superior Fixo */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background">
         <Header />
-
-        {/* Área de Visualização das Páginas */}
-        <main className="flex-1 overflow-y-auto bg-aldebaran-dark">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-background">
+          {children || <Outlet />}
         </main>
       </div>
     </div>
@@ -49,25 +74,30 @@ function MainLayout() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Rota Pública de Login */}
-          <Route path="/login" element={<Login />} />
+      <ToastProvider>
+        <Router>
+          <Routes>
+            {/* Rotas Públicas */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/projectsight" element={<Landing />} />
 
-          {/* Rotas Principais (Protegidas) */}
-          <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/contratos/:id" element={<DetalheContrato />} />
-            <Route path="/contratos/novo" element={<NovoContrato />} />
-            <Route path="/responsaveis" element={<Responsaveis />} />
-            <Route path="/area/:area" element={<Contratos />} />
-            <Route path="/contratos" element={<Contratos />} />
-          </Route>
+            {/* Rota Inicial Inteligente (Landing para visitantes, Dashboard para usuários logados) */}
+            <Route path="/" element={<HomeOrLanding />} />
 
-          {/* Redirecionamento padrão para rotas não encontradas */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+            {/* Rotas Principais (Protegidas) */}
+            <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route path="/contratos/:id" element={<DetalheContrato />} />
+              <Route path="/contratos/novo" element={<NovoContrato />} />
+              <Route path="/responsaveis" element={<Responsaveis />} />
+              <Route path="/area/:area" element={<Contratos />} />
+              <Route path="/contratos" element={<Contratos />} />
+            </Route>
+
+            {/* Redirecionamento padrão para rotas não encontradas */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }

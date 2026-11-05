@@ -6,13 +6,16 @@ import {
   Clock,
   User,
   Calendar,
-  TrendingUp,
-  BarChart2,
   ArrowRight,
   Search,
-  Users,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  FolderOpen,
+  FileSpreadsheet,
+  Plus,
+  Layers,
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
 import { getDashboardData, getContratos, exportarCSV } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -53,7 +56,7 @@ const Dashboard = () => {
         setError(null);
       } catch (err) {
         console.error("Erro ao carregar dashboard:", err);
-        setError("Falha ao carregar os dados. Verifique a conexão com o servidor.");
+        setError("Falha ao carregar os dados. Verifique a conexão com o servidor local.");
       } finally {
         setLoading(false);
       }
@@ -112,11 +115,17 @@ const Dashboard = () => {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  const isConcluido = (status) => {
+    if (!status) return false;
+    const s = String(status).toLowerCase().trim();
+    return s.includes('concl') || s.includes('conug') || s.includes('ug');
+  };
+
   // Processar Etapas Atrasadas (Gargalos)
   const obterEtapasAtrasadas = () => {
     const atrasadas = [];
     contratos.forEach(contrato => {
-      if (contrato.status === 'concluido') return;
+      if (isConcluido(contrato.status)) return;
 
       contrato.fases?.forEach(fase => {
         fase.etapas?.forEach(etapa => {
@@ -150,10 +159,8 @@ const Dashboard = () => {
     const delaysByFase = { 'Planejamento': 0, 'Campo/Mapeamento': 0, 'Relatório/Escritório': 0, 'Outros': 0 };
 
     etapasAtrasadas.forEach(e => {
-      // Por colaborador
       delaysByCollab[e.responsavel] = (delaysByCollab[e.responsavel] || 0) + e.dias_atraso;
 
-      // Por fase
       const nomeLower = e.nome_fase.toLowerCase();
       if (nomeLower.includes('planejamento')) {
         delaysByFase['Planejamento'] += e.dias_atraso;
@@ -204,95 +211,99 @@ const Dashboard = () => {
 
   // Filtragem de Contratos em Aberto
   const contratosEmAberto = contratos.filter(c => {
-    if (c.status === 'concluido') return false;
+    if (isConcluido(c.status)) return false;
 
-    // Filtro de busca por texto
     const correspondeTexto =
-      c.nome_projeto.toLowerCase().includes(termoBusca.toLowerCase()) ||
-      c.cliente.toLowerCase().includes(termoBusca.toLowerCase()) ||
-      c.diretor_projeto.toLowerCase().includes(termoBusca.toLowerCase());
+      c.nome_projeto?.toLowerCase().includes(termoBusca.toLowerCase()) ||
+      c.cliente?.toLowerCase().includes(termoBusca.toLowerCase()) ||
+      c.diretor_projeto?.toLowerCase().includes(termoBusca.toLowerCase());
 
-    // Filtro de área
     const correspondeArea =
       areaFiltro === 'todas' ||
-      c.area.toLowerCase() === areaFiltro.toLowerCase();
+      c.area?.toLowerCase() === areaFiltro.toLowerCase();
 
     return correspondeTexto && correspondeArea;
   });
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-aldebaran-dark">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-aldebaran-gold border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-theme-weak font-medium">Carregando dados da Aldebaran...</p>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-medium text-xs">Carregando dados do ProjectSight...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto animate-fade-in">
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1500px] mx-auto animate-fade-in text-slate-900">
 
-      {/* CADASTRAR/EXPORTAR CABEÇALHO */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-aldebaran-border pb-6">
+      {/* CABEÇALHO EXECUTIVO */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-theme-strong lowercase tracking-tight">
-            controle de contratos
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Controle Operacional de Contratos
           </h1>
-          <p className="text-theme-weak text-sm mt-1 lowercase font-mono">
-            topografia geologia — belo horizonte, mg
+          <p className="text-slate-500 text-xs mt-1">
+            Monitoramento de contratos, cronogramas e entregas — Topografia, Geologia e Meio Ambiente
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={exportarCSV}
-            className="px-4 py-1.5 bg-transparent text-theme-weak border border-aldebaran-border hover:border-theme-strong rounded-none text-xs font-semibold lowercase transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
           >
-            exportar csv
+            <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
+            Exportar CSV
           </button>
           <button
             onClick={() => navigate('/contratos/novo')}
-            className="px-4 py-1.5 bg-aldebaran-gold hover:opacity-90 text-white rounded-none text-xs font-bold lowercase transition-all shadow-sm flex items-center gap-1.5"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
-            + novo contrato
+            <Plus className="w-3.5 h-3.5" />
+            Novo Contrato
           </button>
         </div>
       </div>
 
-      {/* TABS DE NAVEGAÇÃO DO DASHBOARD */}
-      <div className="flex border-b border-aldebaran-border gap-6">
+      {/* NAVEGAÇÃO POR ABAS */}
+      <div className="flex border-b border-slate-200 gap-8">
         <button
           onClick={() => setAbaAtiva('geral')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all relative ${abaAtiva === 'geral'
-              ? 'text-aldebaran-gold border-b-2 border-aldebaran-gold font-extrabold'
-              : 'text-theme-weak hover:text-theme-normal'
-            }`}
+          className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative cursor-pointer ${
+            abaAtiva === 'geral'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
         >
           Visão Geral & Contratos
         </button>
         <button
           onClick={() => setAbaAtiva('gargalos')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all relative flex items-center gap-1.5 ${abaAtiva === 'gargalos'
-              ? 'text-aldebaran-gold border-b-2 border-aldebaran-gold font-extrabold'
-              : 'text-theme-weak hover:text-theme-normal'
-            }`}
+          className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative flex items-center gap-2 cursor-pointer ${
+            abaAtiva === 'gargalos'
+              ? 'text-primary border-b-2 border-primary'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
         >
-          Análise de Gargalos & Atrasos
+          Análise de Prazos & Gargalos
           {etapasAtrasadas.length > 0 && (
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse block"></span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+              {etapasAtrasadas.length}
+            </span>
           )}
         </button>
       </div>
 
       {/* ERROS DE CONEXÃO */}
       {error && (
-        <div className="bg-transparent text-rose-500 border border-rose-500/20 rounded-none p-4 flex items-start gap-3">
-          <AlertCircle className="text-rose-400 w-5 h-5 shrink-0 mt-0.5" />
+        <div className="bg-rose-50 text-rose-800 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="text-rose-600 w-5 h-5 shrink-0 mt-0.5" />
           <div>
-            <h4 className="text-rose-400 font-bold text-sm">Problema com o servidor</h4>
-            <p className="text-rose-300/80 text-xs mt-1">{error}</p>
+            <h4 className="font-semibold text-sm">Problema com o servidor</h4>
+            <p className="text-rose-600 text-xs mt-0.5">{error}</p>
           </div>
         </div>
       )}
@@ -300,25 +311,98 @@ const Dashboard = () => {
       {/* CONTEÚDO DA ABA 1: VISÃO GERAL */}
       {abaAtiva === 'geral' && (
         <div className="space-y-6">
-          {/* LISTA DE CONTRATOS EM ABERTO */}
-          <div className="border border-aldebaran-border rounded-none p-6 bg-aldebaran-dark0/5 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+          {/* 4 CARDS DE MÉTRICAS EXECUTIVAS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Card 1: Total */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Contratos Ativos</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-slate-900">
+                  {contratosEmAberto.length}
+                </span>
+                <span className="text-xs text-slate-400">em andamento</span>
+              </div>
+            </div>
+
+            {/* Card 2: No Prazo */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">No Prazo</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-emerald-600">
+                  {stats.contratos_no_prazo || 0}
+                </span>
+                <span className="text-xs text-emerald-700/80 font-medium">cronograma em dia</span>
+              </div>
+            </div>
+
+            {/* Card 3: Atenção */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Atenção (≤ 7 dias)</span>
+                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-amber-600">
+                  {stats.contratos_atencao || 0}
+                </span>
+                <span className="text-xs text-amber-700/80 font-medium">vence em breve</span>
+              </div>
+            </div>
+
+            {/* Card 4: Atrasados */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Com Atraso</span>
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-rose-600">
+                  {stats.contratos_atrasados || 0}
+                </span>
+                <span className="text-xs text-rose-700/80 font-medium">requer ação</span>
+              </div>
+            </div>
+          </div>
+
+          {/* TABELA DE CONTRATOS EM ABERTO */}
+          <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
+            
+            {/* Barra de Filtros */}
+            <div className="p-4 sm:p-5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-theme-weak block">Contratos em Aberto</span>
-                <h3 className="text-lg font-bold text-theme-strong lowercase mt-1">todos os projetos em andamento</h3>
+                <h3 className="text-base font-bold text-slate-900">
+                  Projetos em Andamento
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Acompanhamento de prazos de entrega e medições
+                </p>
               </div>
 
-              {/* Filtros */}
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Busca */}
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Campo de Busca */}
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-theme-weak absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={termoBusca}
                     onChange={(e) => setTermoBusca(e.target.value)}
-                    placeholder="filtrar projeto, cliente..."
-                    className="w-[200px] sm:w-[240px] pl-9 pr-4 py-1.5 bg-aldebaran-dark border border-aldebaran-border text-theme-normal text-xs rounded-none placeholder-theme-weak/50 focus:outline-none focus:border-theme-strong transition-colors"
+                    placeholder="Filtrar por projeto ou cliente..."
+                    className="w-[200px] sm:w-[260px] pl-9 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
                   />
                 </div>
 
@@ -326,109 +410,147 @@ const Dashboard = () => {
                 <select
                   value={areaFiltro}
                   onChange={(e) => setAreaFiltro(e.target.value)}
-                  className="px-3 py-1.5 bg-aldebaran-dark border border-aldebaran-border text-theme-normal text-xs rounded-none focus:outline-none focus:border-theme-strong"
+                  className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-300 text-slate-700 text-xs rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                 >
-                  <option value="todas">todas as áreas</option>
-                  <option value="topografia">topografia</option>
-                  <option value="geologia">geologia</option>
+                  <option value="todas">Todas as Áreas</option>
+                  <option value="topografia">Topografia</option>
+                  <option value="geologia">Geologia</option>
+                  <option value="meio-ambiente">Meio Ambiente</option>
                 </select>
               </div>
             </div>
 
+            {/* Conteúdo da Tabela */}
             {contratosEmAberto.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-aldebaran-border text-theme-weak text-sm lowercase font-mono">
-                nenhum contrato em aberto localizado com os filtros aplicados.
+              <div className="text-center py-16 px-4 text-slate-500 text-sm">
+                <FolderOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                Nenhum contrato em aberto localizado com os filtros aplicados.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-aldebaran-border text-[10px] uppercase font-bold text-theme-weak tracking-wider">
-                      <th className="pb-3 px-2">projeto / cliente</th>
-                      <th className="pb-3 px-2">área</th>
-                      <th className="pb-3 px-2">diretor responsável</th>
-                      <th className="pb-3 px-2">entrega prevista</th>
-                      <th className="pb-3 px-2">dias restantes</th>
-                      <th className="pb-3 px-2">progresso</th>
-                      <th className="pb-3 px-2 text-right">ações</th>
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
+                      <th className="py-3 px-4">Projeto / Cliente</th>
+                      <th className="py-3 px-4">Área</th>
+                      <th className="py-3 px-4">Diretor Responsável</th>
+                      <th className="py-3 px-4">Prazo de Entrega</th>
+                      <th className="py-3 px-4">Dias Restantes</th>
+                      <th className="py-3 px-4">Progresso Geral</th>
+                      <th className="py-3 px-4 text-right">Ação</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-aldebaran-border/50 text-sm">
+                  <tbody className="divide-y divide-slate-100 text-sm">
                     {contratosEmAberto.map(contrato => {
                       const progresso = obterProgressoContrato(contrato);
                       const diasRestantes = calcularDiasRestantes(contrato.data_entrega_final);
 
-                      let diasBadgeStyle = 'text-theme-normal';
+                      // Estilização do badge de dias restantes
+                      let diasBadge = (
+                        <span className="text-slate-400 font-mono text-xs">-</span>
+                      );
+
                       if (diasRestantes !== null) {
                         if (diasRestantes < 0) {
-                          diasBadgeStyle = 'text-rose-500 font-bold';
+                          diasBadge = (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60 font-mono">
+                              Atrasado há {Math.abs(diasRestantes)}d
+                            </span>
+                          );
                         } else if (diasRestantes <= 7) {
-                          diasBadgeStyle = 'text-aldebaran-gold font-bold';
+                          diasBadge = (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60 font-mono">
+                              {diasRestantes} dias
+                            </span>
+                          );
                         } else {
-                          diasBadgeStyle = 'text-emerald-500';
+                          diasBadge = (
+                            <span className="text-slate-700 font-medium font-mono text-xs">
+                              {diasRestantes} dias
+                            </span>
+                          );
                         }
                       }
+
+                      // Badge de área
+                      const areaStyles = {
+                        Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
+                        Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
+                        'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
+                      };
+                      const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
 
                       return (
                         <tr
                           key={contrato.id}
                           onClick={() => navigate(`/contratos/${contrato.id}`)}
-                          className="group hover:bg-aldebaran-border/10 cursor-pointer transition-colors"
+                          className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
                         >
-                          <td className="py-4 px-2">
-                            <div className="font-bold text-theme-strong group-hover:text-aldebaran-gold transition-colors">{contrato.nome_projeto}</div>
-                            <div className="text-xs text-theme-weak font-mono lowercase">{contrato.cliente}</div>
+                          {/* Projeto e Cliente */}
+                          <td className="py-3.5 px-4">
+                            <div className="font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                              {contrato.nome_projeto}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-0.5">
+                              {contrato.cliente}
+                            </div>
                           </td>
-                          <td className="py-4 px-2">
-                            <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-none font-mono lowercase ${contrato.area === 'Topografia'
-                                ? 'bg-aldebaran-gold/10 text-aldebaran-gold border border-aldebaran-gold/20'
-                                : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                              }`}>
+
+                          {/* Área */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${currentAreaStyle}`}>
                               {contrato.area}
                             </span>
                           </td>
-                          <td className="py-4 px-2">
+
+                          {/* Diretor Responsável */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-aldebaran-border text-theme-weak text-[10px] font-bold flex items-center justify-center">
-                                {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2).toUpperCase() : '??'}
+                              <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-semibold flex items-center justify-center uppercase">
+                                {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2) : '??'}
                               </div>
-                              <span className="text-theme-normal text-xs">{contrato.diretor_projeto}</span>
+                              <span className="text-xs font-medium text-slate-700">
+                                {contrato.diretor_projeto}
+                              </span>
                             </div>
                           </td>
-                          <td className="py-4 px-2 text-xs font-mono text-theme-weak">
+
+                          {/* Entrega Prevista */}
+                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 whitespace-nowrap">
                             {formatarData(contrato.data_entrega_final)}
                           </td>
-                          <td className="py-4 px-2 text-xs font-mono">
-                            {diasRestantes !== null ? (
-                              <span className={diasBadgeStyle}>
-                                {diasRestantes < 0
-                                  ? `atrasado há ${Math.abs(diasRestantes)}d`
-                                  : `${diasRestantes} dias`}
-                              </span>
-                            ) : (
-                              <span className="text-theme-weak">-</span>
-                            )}
+
+                          {/* Dias Restantes */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            {diasBadge}
                           </td>
-                          <td className="py-4 px-2">
-                            <div className="flex items-center gap-3 min-w-[120px]">
-                              <div className="flex-1 h-1.5 bg-aldebaran-border rounded-none relative overflow-hidden">
+
+                          {/* Barra de Progresso */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3 min-w-[130px]">
+                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                                 <div
-                                  className={`absolute left-0 top-0 h-full transition-all duration-500 ${contrato.status === 'atrasado'
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    contrato.status === 'atrasado'
                                       ? 'bg-rose-500'
                                       : contrato.status === 'atencao'
-                                        ? 'bg-aldebaran-gold'
+                                        ? 'bg-amber-500'
                                         : 'bg-emerald-500'
-                                    }`}
+                                  }`}
                                   style={{ width: `${progresso}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs font-bold font-mono text-theme-strong w-8 text-right">{progresso}%</span>
+                              <span className="text-xs font-semibold font-mono text-slate-700 w-8 text-right">
+                                {progresso}%
+                              </span>
                             </div>
                           </td>
-                          <td className="py-4 px-2 text-right">
-                            <button className="p-1 hover:bg-transparent text-theme-weak hover:text-theme-strong rounded-none transition">
-                              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                            </button>
+
+                          {/* Ação */}
+                          <td className="py-3.5 px-4 text-right">
+                            <span className="inline-flex p-1 text-slate-400 group-hover:text-slate-700 transition-colors">
+                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                            </span>
                           </td>
                         </tr>
                       );
@@ -446,55 +568,63 @@ const Dashboard = () => {
         <div className="space-y-6 animate-fade-in">
           {/* CARDS DE RESUMO DE ATRASOS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="border border-aldebaran-border p-5 bg-aldebaran-dark0/10 flex items-start gap-4">
-              <div className="p-3 bg-rose-500/10 rounded-none text-rose-500 shrink-0">
-                <AlertTriangle className="w-5 h-5 animate-pulse" />
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Tarefas Vencidas</span>
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-weak block">Tarefas Atrasadas</span>
-                <h3 className="text-2xl font-extrabold text-theme-strong font-mono mt-1">
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-slate-900">
                   {etapasAtrasadas.length.toString().padStart(2, '0')}
-                </h3>
-                <span className="text-[10px] text-rose-400 lowercase mt-1 block">necessitam de atenção</span>
+                </span>
+                <span className="text-xs text-rose-600 font-medium">pendentes</span>
               </div>
             </div>
 
-            <div className="border border-aldebaran-border p-5 bg-aldebaran-dark0/10 flex items-start gap-4">
-              <div className="p-3 bg-aldebaran-gold/10 rounded-none text-aldebaran-gold shrink-0">
-                <Clock className="w-5 h-5" />
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Média de Atraso</span>
+                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Clock className="w-4 h-4" />
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-weak block">Média de Atraso</span>
-                <h3 className="text-2xl font-extrabold text-theme-strong font-mono mt-1">
-                  {gargalosInfo.mediaAtraso.toString().padStart(2, '0')} <span className="text-xs font-semibold text-theme-weak">dias</span>
-                </h3>
-                <span className="text-[10px] text-theme-weak lowercase mt-1 block">por atividade pendente</span>
-              </div>
-            </div>
-
-            <div className="border border-aldebaran-border p-5 bg-aldebaran-dark0/10 flex items-start gap-4">
-              <div className="p-3 bg-red-600/10 rounded-none text-red-500 shrink-0">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-weak block">Maior Gargalo Único</span>
-                <h3 className="text-2xl font-extrabold text-theme-strong font-mono mt-1">
-                  {gargalosInfo.maiorAtraso.toString().padStart(2, '0')} <span className="text-xs font-semibold text-theme-weak">dias</span>
-                </h3>
-                <span className="text-[10px] text-theme-weak lowercase mt-1 block">maior atraso isolado</span>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-slate-900">
+                  {gargalosInfo.mediaAtraso}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">dias por atividade</span>
               </div>
             </div>
 
-            <div className="border border-aldebaran-border p-5 bg-aldebaran-dark0/10 flex items-start gap-4">
-              <div className="p-3 bg-blue-500/10 rounded-none text-blue-400 shrink-0">
-                <User className="w-5 h-5" />
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Maior Atraso Único</span>
+                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
               </div>
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-theme-weak block">Responsável Crítico</span>
-                <h3 className="text-lg font-bold text-theme-strong mt-1 truncate max-w-[200px]" title={gargalosInfo.respCritico}>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl font-bold font-mono text-rose-600">
+                  {gargalosInfo.maiorAtraso}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">dias no maior gargalo</span>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">Maior Acúmulo</span>
+                <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <User className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <h4 className="text-sm font-bold text-slate-900 truncate" title={gargalosInfo.respCritico}>
                   {gargalosInfo.respCritico}
-                </h3>
-                <span className="text-[10px] text-[#F2AF47] lowercase mt-1 block">maior acúmulo de atraso</span>
+                </h4>
+                <span className="text-[11px] text-slate-500">responsável técnico</span>
               </div>
             </div>
           </div>
@@ -502,34 +632,34 @@ const Dashboard = () => {
           {/* GRÁFICOS DE ANÁLISE DE GARGALOS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            {/* Gargalo por Colaborador */}
-            <div className="border border-aldebaran-border p-6 bg-aldebaran-dark0/10 flex flex-col space-y-6">
+            {/* Atraso por Colaborador */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col space-y-5">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-theme-weak block">Métricas de Sobrecarga</span>
-                <h4 className="text-base font-bold text-theme-strong lowercase mt-1">atraso acumulado por responsável (dias)</h4>
+                <h4 className="text-sm font-bold text-slate-900">Demanda Acumulada por Responsável</h4>
+                <p className="text-xs text-slate-500 mt-0.5">Dias de atraso somados por colaborador</p>
               </div>
 
               {gargalosInfo.colabGargalos.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-center py-16 text-theme-weak text-xs font-mono lowercase">
-                  sem atrasos registrados para colaboradores.
+                <div className="flex-1 flex items-center justify-center text-center py-12 text-slate-400 text-xs">
+                  Sem atrasos registrados para a equipe técnica.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {gargalosInfo.colabGargalos.map((colab, index) => {
+                  {gargalosInfo.colabGargalos.map((colab) => {
                     const maxDelay = gargalosInfo.colabGargalos[0]?.dias || 1;
                     const percent = (colab.dias / maxDelay) * 100;
 
                     return (
                       <div key={colab.nome} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-mono">
-                          <span className="text-theme-normal font-bold">{colab.nome}</span>
-                          <span className="text-theme-weak">
-                            {colab.dias} dias em {colab.count} tarefas
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-slate-800 font-semibold">{colab.nome}</span>
+                          <span className="text-slate-500 font-mono">
+                            {colab.dias} dias ({colab.count} tarefas)
                           </span>
                         </div>
-                        <div className="h-4 bg-aldebaran-border rounded-none relative">
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-[#d9972b] to-rose-600 transition-all duration-500"
+                            className="h-full bg-accent rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
                           ></div>
                         </div>
@@ -540,32 +670,32 @@ const Dashboard = () => {
               )}
             </div>
 
-            {/* Gargalo por Fase */}
-            <div className="border border-aldebaran-border p-6 bg-aldebaran-dark0/10 flex flex-col space-y-6">
+            {/* Atraso por Fase */}
+            <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col space-y-5">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-theme-weak block">Gargalos de Processo</span>
-                <h4 className="text-base font-bold text-theme-strong lowercase mt-1">atraso acumulado por fase do projeto (dias)</h4>
+                <h4 className="text-sm font-bold text-slate-900">Atraso por Fase Operacional</h4>
+                <p className="text-xs text-slate-500 mt-0.5">Dias de atraso acumulados em cada etapa do processo</p>
               </div>
 
               {gargalosInfo.faseGargalos.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center text-center py-16 text-theme-weak text-xs font-mono lowercase">
-                  sem atrasos registrados por fases.
+                <div className="flex-1 flex items-center justify-center text-center py-12 text-slate-400 text-xs">
+                  Sem atrasos registrados por fases.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {gargalosInfo.faseGargalos.map((fase, index) => {
+                  {gargalosInfo.faseGargalos.map((fase) => {
                     const maxDelay = gargalosInfo.faseGargalos[0]?.dias || 1;
                     const percent = (fase.dias / maxDelay) * 100;
 
                     return (
                       <div key={fase.fase} className="space-y-1.5">
-                        <div className="flex justify-between text-xs font-mono">
-                          <span className="text-theme-normal font-bold lowercase">{fase.fase}</span>
-                          <span className="text-theme-weak">{fase.dias} dias de atraso</span>
+                        <div className="flex justify-between text-xs font-medium">
+                          <span className="text-slate-800 font-semibold">{fase.fase}</span>
+                          <span className="text-slate-500 font-mono">{fase.dias} dias</span>
                         </div>
-                        <div className="h-4 bg-aldebaran-border rounded-none relative">
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-aldebaran-gold to-orange-600 transition-all duration-500"
+                            className="h-full bg-amber-500 rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
                           ></div>
                         </div>
@@ -578,72 +708,73 @@ const Dashboard = () => {
 
           </div>
 
-          {/* DETALHAMENTO DAS TAREFAS ATRASADAS (MAPEAMENTO CRÍTICO) */}
-          <div className="border border-aldebaran-border rounded-none p-6 bg-aldebaran-dark0/5 space-y-6">
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-theme-weak block">Mapeamento Crítico</span>
-              <h3 className="text-lg font-bold text-theme-strong lowercase mt-1">todas as atividades atualmente com prazo vencido</h3>
+          {/* TABELA DE ATIVIDADES VENCIDAS */}
+          <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
+            <div className="p-5 border-b border-slate-200/80">
+              <h3 className="text-base font-bold text-slate-900">
+                Detalhamento das Atividades Vencidas
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Acompanhamento pontual de tarefas que necessitam de intervenção
+              </p>
             </div>
 
             {etapasAtrasadas.length === 0 ? (
-              <div className="text-center py-12 border border-dashed border-aldebaran-border text-emerald-400 text-sm lowercase font-mono flex flex-col items-center gap-2">
-                <CheckCircle className="w-6 h-6 text-emerald-400" />
-                excelente! nenhuma tarefa está atrasada no momento.
+              <div className="text-center py-16 text-emerald-600 text-sm flex flex-col items-center gap-2">
+                <CheckCircle className="w-8 h-8 text-emerald-500" />
+                <span className="font-semibold">Excelente! Nenhuma atividade está atrasada no momento.</span>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-aldebaran-border text-[10px] uppercase font-bold text-theme-weak tracking-wider">
-                      <th className="pb-3 px-2">tarefa / etapa</th>
-                      <th className="pb-3 px-2">projeto (fase)</th>
-                      <th className="pb-3 px-2">responsável</th>
-                      <th className="pb-3 px-2">prazo previsto</th>
-                      <th className="pb-3 px-2">atraso</th>
-                      <th className="pb-3 px-2">progresso atual</th>
-                      <th className="pb-3 px-2 text-right">ações</th>
+                    <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
+                      <th className="py-3 px-4">Tarefa / Etapa</th>
+                      <th className="py-3 px-4">Projeto & Fase</th>
+                      <th className="py-3 px-4">Responsável</th>
+                      <th className="py-3 px-4">Prazo Previsto</th>
+                      <th className="py-3 px-4">Atraso</th>
+                      <th className="py-3 px-4">Progresso</th>
+                      <th className="py-3 px-4 text-right">Ação</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-aldebaran-border/50 text-sm">
+                  <tbody className="divide-y divide-slate-100 text-sm">
                     {etapasAtrasadas.map(etapa => (
                       <tr
                         key={etapa.id}
                         onClick={() => navigate(`/contratos/${etapa.contrato_id}`)}
-                        className="group hover:bg-aldebaran-border/10 cursor-pointer transition-colors"
+                        className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
                       >
-                        <td className="py-4 px-2">
-                          <span className="font-bold text-theme-strong group-hover:text-aldebaran-gold transition-colors">{etapa.nome_tarefa}</span>
+                        <td className="py-3.5 px-4 font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                          {etapa.nome_tarefa}
                         </td>
-                        <td className="py-4 px-2">
-                          <div className="text-xs text-theme-normal font-semibold">{etapa.nome_projeto}</div>
-                          <div className="text-[10px] text-theme-weak lowercase font-mono">{etapa.nome_fase}</div>
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-slate-800 text-xs">{etapa.nome_projeto}</div>
+                          <div className="text-[11px] text-slate-400 mt-0.5">{etapa.nome_fase}</div>
                         </td>
-                        <td className="py-4 px-2 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                            <span className="text-theme-normal">{etapa.responsavel}</span>
-                          </div>
+                        <td className="py-3.5 px-4 text-xs font-medium text-slate-700">
+                          {etapa.responsavel}
                         </td>
-                        <td className="py-4 px-2 text-xs font-mono text-theme-weak">
+                        <td className="py-3.5 px-4 text-xs font-mono text-slate-600">
                           {formatarData(etapa.data_termino)}
                         </td>
-                        <td className="py-4 px-2 text-xs font-mono">
-                          <span className="bg-rose-500/10 text-rose-500 border border-rose-500/20 px-2 py-0.5 rounded-none font-bold">
-                            {etapa.dias_atraso}d atraso
+                        <td className="py-3.5 px-4">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60 font-mono">
+                            {etapa.dias_atraso}d de atraso
                           </span>
                         </td>
-                        <td className="py-4 px-2">
+                        <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-aldebaran-border rounded-none relative">
-                              <div className="absolute left-0 top-0 h-full bg-rose-500" style={{ width: `${etapa.progresso}%` }}></div>
+                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-rose-500 rounded-full" style={{ width: `${etapa.progresso}%` }}></div>
                             </div>
-                            <span className="text-xs font-bold font-mono text-theme-weak">{etapa.progresso}%</span>
+                            <span className="text-xs font-mono font-medium text-slate-500">{etapa.progresso}%</span>
                           </div>
                         </td>
-                        <td className="py-4 px-2 text-right">
-                          <button className="p-1 hover:bg-transparent text-theme-weak hover:text-theme-strong rounded-none transition">
-                            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                          </button>
+                        <td className="py-3.5 px-4 text-right">
+                          <span className="inline-flex p-1 text-slate-400 group-hover:text-slate-700 transition-colors">
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                          </span>
                         </td>
                       </tr>
                     ))}

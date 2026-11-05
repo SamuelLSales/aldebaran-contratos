@@ -56,8 +56,8 @@ Criamos um script automatizado chamado `iniciar.bat` para facilitar a inicializa
    * Instalar todas as dependências do backend.
    * Instalar todas as dependências do frontend React.
    * Iniciar o backend FastAPI na porta `8000`.
-   * Iniciar o frontend Vite/React na porta `5173`.
-3. Abra o seu navegador e acesse: [http://localhost:5173](http://localhost:5173)
+   * Iniciar o frontend Vite/React na porta `3000`.
+3. Abra o seu navegador e acesse: [http://localhost:3000](http://localhost:3000)
 
 ---
 
@@ -105,6 +105,6 @@ Caso prefira configurar e rodar cada parte manualmente, siga os passos abaixo no
    ```bash
    npm run dev
    ```
-4. O frontend estará acessível em: [http://localhost:5173](http://localhost:5173).
+4. O frontend estará acessível em: [http://localhost:3000](http://localhost:3000).
 
 

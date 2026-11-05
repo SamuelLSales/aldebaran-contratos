@@ -1,15 +1,13 @@
 // frontend/src/pages/Login.jsx
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Lock, User, Shield, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const navigate = useNavigate();
   const { loginUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
 
-  // Form states
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -19,7 +17,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      setError('Por favor, preencha todos os campos.');
+      setError('Informe seu usuário e senha.');
       return;
     }
 
@@ -30,7 +28,7 @@ export default function Login() {
       navigate('/');
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.detail || 'Erro ao fazer login. Verifique suas credenciais.';
+      const msg = err.response?.data?.detail || 'Usuário ou senha incorretos.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -38,96 +36,120 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-aldebaran-dark0 flex items-center justify-center p-4 selection:bg-amber-500/20 selection:text-amber-500">
-      <div className="w-full max-w-[420px] bg-[#111317] border border-aldebaran-border p-8 md:p-10 relative overflow-hidden">
-        {/* Glow decorativo no fundo */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col items-center justify-center p-4 font-sans selection:bg-primary selection:text-white">
+      {/* Container Principal com Moldura Dupla (Layered Bezel) sobre fundo liso */}
+      <div className="w-full max-w-[400px]">
+        <div className="rounded-[20px] bg-slate-900/[0.03] p-1.5 ring-1 ring-slate-900/[0.07] shadow-[0_24px_48px_-12px_rgba(15,23,42,0.10),0_4px_12px_-2px_rgba(15,23,42,0.04)]">
+          
+          {/* Card Interno Branco */}
+          <div className="rounded-[14px] bg-white p-7 sm:p-8 ring-1 ring-slate-900/[0.06] shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+            
+            {/* Cabeçalho */}
+            <div className="mb-7">
+              <div className="mb-5">
+                <span className="text-[15px] font-bold tracking-tight text-slate-900">
+                  Project<span className="text-primary">Sight</span>
+                </span>
+              </div>
 
-        {/* LOGO E TÍTULO */}
-        <div className="text-center mb-8 relative z-10">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-500/10 border border-amber-500/20 rounded-none mb-3 text-amber-500">
-            <Shield className="w-6 h-6 animate-pulse" />
-          </div>
-          <h1 className="text-xl font-bold tracking-widest text-white uppercase">
-            Aldebaran
-          </h1>
-          <span className="text-[10px] font-bold tracking-[0.25em] text-amber-500 uppercase block mt-1">
-            Contratos & Prazos
-          </span>
-          <p className="text-theme-weak text-xs mt-3">
-            Faça login para gerenciar os projetos e prazos
-          </p>
-        </div>
-
-        {/* FEEDBACK DE ERRO */}
-        {error && (
-          <div className="mb-6 p-4 bg-rose-950/20 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* FORMULÁRIO DE LOGIN */}
-        <form onSubmit={handleLogin} className="space-y-5 relative z-10">
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-weak mb-2">
-              Usuário
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-theme-weak">
-                <User className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-[#16191f] border border-aldebaran-border rounded-none py-3 pl-10 pr-4 text-sm text-white placeholder-theme-weak focus:border-amber-500 focus:outline-none transition-colors"
-                placeholder="admin"
-                disabled={loading}
-                autoComplete="username"
-                required
-              />
+              <h1 className="text-[19px] font-semibold tracking-tight text-slate-900">
+                Acesse sua conta
+              </h1>
+              <p className="text-[13px] text-slate-500 mt-1">
+                Entre com suas credenciais para continuar no painel.
+              </p>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-weak mb-2">
-              Senha
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-theme-weak">
-                <Lock className="w-4 h-4" />
-              </span>
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#16191f] border border-aldebaran-border rounded-none py-3 pl-10 pr-10 text-sm text-white placeholder-theme-weak focus:border-amber-500 focus:outline-none transition-colors"
-                placeholder="••••••••"
-                disabled={loading}
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-theme-weak hover:text-white transition-colors"
+            {/* Erro */}
+            {error && (
+              <div
+                role="alert"
+                className="mb-5 px-3.5 py-2.5 rounded-lg bg-red-50/90 ring-1 ring-red-200 text-red-700 text-[13px] font-medium"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+                {error}
+              </div>
+            )}
+
+            {/* Formulário */}
+            <form onSubmit={handleLogin} className="space-y-4" noValidate>
+              <div>
+                <label
+                  htmlFor="login-username"
+                  className="block text-[13px] font-medium text-slate-700 mb-1.5"
+                >
+                  Usuário
+                </label>
+                <input
+                  id="login-username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full h-10 bg-white border border-slate-300/90 rounded-lg px-3.5 text-[13.5px] text-slate-900 placeholder:text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-400/80 focus:border-primary focus:ring-[3px] focus:ring-primary/12 focus:outline-none transition-all"
+                  placeholder="Digite seu usuário"
+                  disabled={loading}
+                  autoComplete="username"
+                  required
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label
+                    htmlFor="login-password"
+                    className="block text-[13px] font-medium text-slate-700"
+                  >
+                    Senha
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[12px] font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? 'Ocultar' : 'Mostrar'}
+                  </button>
+                </div>
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-10 bg-white border border-slate-300/90 rounded-lg px-3.5 text-[13.5px] text-slate-900 placeholder:text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-400/80 focus:border-primary focus:ring-[3px] focus:ring-primary/12 focus:outline-none transition-all"
+                  placeholder="••••••••"
+                  disabled={loading}
+                  autoComplete="current-password"
+                  required
+                />
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    backgroundImage: 'linear-gradient(180deg, #144E6A 0%, #0F3E54 100%)',
+                    boxShadow:
+                      'inset 0 1px 0 0 rgba(255, 255, 255, 0.18), 0 1px 2px 0 rgba(15, 23, 42, 0.2), 0 0 0 1px #0F3E54',
+                  }}
+                  className="w-full h-10 bg-primary hover:brightness-110 active:brightness-95 text-white font-medium text-[13.5px] px-4 rounded-lg transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {loading ? 'Entrando...' : 'Entrar no sistema'}
+                </button>
+              </div>
+            </form>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-aldebaran-dark0 font-bold text-sm tracking-wider uppercase py-3.5 px-4 transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group"
-          >
-            {loading ? 'Autenticando...' : 'Acessar Painel'}
-            {!loading && <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
-          </button>
-        </form>
+          {/* Rodapé Embutido na Moldura (Inset Bezel Footer) */}
+          <div className="px-4 py-2.5 flex items-center justify-between text-[12px] text-slate-500">
+            <span>Gestão de Contratos e Prazos</span>
+            <Link
+              to="/projectsight"
+              className="font-medium text-slate-700 hover:text-primary transition-colors"
+            >
+              Sobre o sistema →
+            </Link>
+          </div>
+
+        </div>
       </div>
     </div>
   );

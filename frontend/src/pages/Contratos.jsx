@@ -7,7 +7,12 @@ import {
   Clock, 
   Calendar, 
   ChevronRight,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Compass,
+  Layers,
+  TreePine,
+  CheckCircle2
 } from 'lucide-react';
 import { getContratos } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
@@ -15,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 
 const Contratos = () => {
   const navigate = useNavigate();
-  const { area } = useParams(); // 'topografia', 'geologia', ou undefined
+  const { area } = useParams(); // 'topografia', 'geologia', 'meio-ambiente' ou undefined
   const { user } = useAuth();
 
   const [contratos, setContratos] = useState([]);
@@ -81,168 +86,207 @@ const Contratos = () => {
     return diffDays;
   };
 
+  const isConcluido = (status) => {
+    if (!status) return false;
+    const s = String(status).toLowerCase().trim();
+    return s.includes('concl') || s.includes('conug') || s.includes('ug');
+  };
+
   const contratosFiltrados = contratos.filter(c => {
     const matchBusca = 
-      c.nome_projeto.toLowerCase().includes(busca.toLowerCase()) || 
-      c.cliente.toLowerCase().includes(busca.toLowerCase());
+      c.nome_projeto?.toLowerCase().includes(busca.toLowerCase()) || 
+      c.cliente?.toLowerCase().includes(busca.toLowerCase()) ||
+      c.diretor_projeto?.toLowerCase().includes(busca.toLowerCase());
     
     const matchArea = filtroArea === 'Todas' || c.area === filtroArea;
-    const matchStatus = filtroStatus === 'Todos' || c.status === filtroStatus;
+    const matchStatus = filtroStatus === 'Todos' || 
+      (filtroStatus === 'concluido' ? isConcluido(c.status) : c.status === filtroStatus);
 
     return matchBusca && matchArea && matchStatus;
   });
 
+  const getAreaIcon = (areaNome) => {
+    if (areaNome === 'Topografia') return <Compass className="w-5 h-5 text-sky-600" />;
+    if (areaNome === 'Geologia') return <Layers className="w-5 h-5 text-amber-600" />;
+    if (areaNome === 'Meio Ambiente') return <TreePine className="w-5 h-5 text-emerald-600" />;
+    return <FolderOpen className="w-5 h-5 text-primary" />;
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-aldebaran-gold border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-medium text-xs">Carregando contratos...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-[1200px] mx-auto animate-fade-in text-theme-strong">
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto animate-fade-in text-slate-900">
       
       {/* CABEÇALHO */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-aldebaran-border pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold flex items-center gap-3 font-title">
-            <FolderOpen className="text-aldebaran-gold w-8 h-8" />
+          <h1 className="text-2xl font-bold flex items-center gap-2.5 text-slate-900">
+            {getAreaIcon(filtroArea)}
             Contratos: {filtroArea !== 'Todas' ? filtroArea : 'Todos os Projetos'}
           </h1>
-          <p className="text-theme-weak text-xs mt-1">
-            Gerencie e acompanhe os detalhes operacionais dos contratos
+          <p className="text-slate-500 text-xs mt-1">
+            Gerencie e acompanhe os detalhes operacionais, cronogramas e entregas
           </p>
         </div>
         {user?.role === 'admin' && (
           <button
             onClick={() => navigate('/contratos/novo')}
-            className="px-4 py-2 bg-aldebaran-gold hover:bg-aldebaran-goldDark text-aldebaran-dark rounded-none font-bold text-sm transition-all flex items-center gap-2 self-start sm:self-auto shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg font-semibold text-xs transition-all shadow-sm self-start sm:self-auto cursor-pointer"
           >
+            <Plus className="w-3.5 h-3.5" />
             Novo Contrato
           </button>
         )}
       </div>
 
       {error && (
-        <div className="bg-transparent text-rose-500 border border-rose-500/20 rounded-none p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+        <div className="bg-rose-50 text-rose-800 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
           <p className="text-xs">{error}</p>
         </div>
       )}
 
-      {/* FILTROS E TABELA */}
-      <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none shadow-sm overflow-hidden">
+      {/* CONTAINER DE FILTROS E CARDS */}
+      <div className="space-y-6">
         
-        {/* FILTROS */}
-        <div className="p-5 border-b border-aldebaran-border flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-aldebaran-dark0">
+        {/* FILTROS DE PESQUISA */}
+        <div className="p-4 bg-white border border-slate-200/90 rounded-xl shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           
           {/* Busca textual */}
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-theme-weak" />
+          <div className="relative w-full lg:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar projeto ou cliente..."
+              placeholder="Buscar por projeto, cliente ou diretor..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong placeholder-slate-500 focus:outline-none focus:border-aldebaran-gold transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
             />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Filtrar por Área */}
-            <div className="flex items-center gap-2 bg-aldebaran-dark px-3 py-1.5 rounded-none border border-aldebaran-border">
-              <Filter className="w-3.5 h-3.5 text-theme-weak" />
+            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-300">
+              <Filter className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={filtroArea}
                 onChange={(e) => setFiltroArea(e.target.value)}
-                className="bg-transparent text-xs text-theme-normal focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
               >
-                <option value="Todas" className="bg-aldebaran-dark">Todas as Áreas</option>
-                <option value="Topografia" className="bg-aldebaran-dark">Topografia</option>
-                <option value="Geologia" className="bg-aldebaran-dark">Geologia</option>
+                <option value="Todas">Todas as Áreas</option>
+                <option value="Topografia">Topografia</option>
+                <option value="Geologia">Geologia</option>
+                <option value="Meio Ambiente">Meio Ambiente</option>
               </select>
             </div>
 
             {/* Filtrar por Status */}
-            <div className="flex items-center gap-2 bg-aldebaran-dark px-3 py-1.5 rounded-none border border-aldebaran-border">
-              <Clock className="w-3.5 h-3.5 text-theme-weak" />
+            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-300">
+              <Clock className="w-3.5 h-3.5 text-slate-500" />
               <select
                 value={filtroStatus}
                 onChange={(e) => setFiltroStatus(e.target.value)}
-                className="bg-transparent text-xs text-theme-normal focus:outline-none cursor-pointer"
+                className="bg-transparent text-xs text-slate-700 font-medium focus:outline-none cursor-pointer"
               >
-                <option value="Todos" className="bg-aldebaran-dark">Todos os Status</option>
-                <option value="no_prazo" className="bg-aldebaran-dark">No prazo</option>
-                <option value="atencao" className="bg-aldebaran-dark">Atenção</option>
-                <option value="atrasado" className="bg-aldebaran-dark">Atrasado</option>
-                <option value="concluido" className="bg-aldebaran-dark">Concluído</option>
+                <option value="Todos">Todos os Status</option>
+                <option value="no_prazo">No prazo</option>
+                <option value="atencao">Atenção</option>
+                <option value="atrasado">Atrasado</option>
+                <option value="concluido">Concluído</option>
               </select>
             </div>
           </div>
         </div>
 
-        {/* GRID DE CARDS (Substituindo a tabela com rolagem horizontal) */}
-        <div className="p-5">
+        {/* GRID DE CARDS CORPORATIVOS */}
+        <div>
           {contratosFiltrados.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {contratosFiltrados.map((contrato) => {
                 const diasRestantes = calcularDiasRestantes(contrato.data_entrega_final);
+                
+                const areaStyles = {
+                  Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
+                  Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
+                  'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
+                };
+                const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
+
                 return (
                   <div 
                     key={contrato.id} 
-                    className="bg-aldebaran-dark border border-aldebaran-border rounded-none p-4 hover:border-aldebaran-gold/50 transition-all flex flex-col justify-between group"
+                    className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card hover:border-slate-300 transition-all flex flex-col justify-between group"
                   >
                     {/* Cabeçalho do Card */}
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="pr-2">
-                        <h3 className="font-bold text-theme-strong text-base group-hover:text-aldebaran-gold transition-colors line-clamp-1" title={contrato.nome_projeto}>
-                          {contrato.nome_projeto}
-                        </h3>
-                        <p className="text-theme-weak text-xs font-medium mt-0.5 line-clamp-1">{contrato.cliente}</p>
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-2.5">
+                        <span className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${currentAreaStyle}`}>
+                          {contrato.area}
+                        </span>
+                        <StatusBadge status={contrato.status} />
                       </div>
-                      <StatusBadge status={contrato.status} />
+
+                      <h3 
+                        className="font-bold text-slate-900 text-base group-hover:text-primary transition-colors line-clamp-1" 
+                        title={contrato.nome_projeto}
+                      >
+                        {contrato.nome_projeto}
+                      </h3>
+                      <p className="text-slate-500 text-xs font-medium mt-0.5 line-clamp-1">
+                        Cliente: {contrato.cliente}
+                      </p>
                     </div>
 
                     {/* Informações Centrais */}
-                    <div className="space-y-3 mb-4 flex-1">
+                    <div className="space-y-3 my-4 flex-1">
+                      {/* Diretor Responsável */}
                       <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider ${
-                          contrato.area === 'Topografia' 
-                            ? 'text-aldebaran-gold border border-aldebaran-gold/20' 
-                            : 'text-yellow-500 border border-yellow-500/20'
-                        }`}>
-                          {contrato.area}
+                        <div className="w-5 h-5 rounded-full bg-primary text-white text-[9px] font-semibold flex items-center justify-center uppercase">
+                          {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2) : '??'}
+                        </div>
+                        <span className="text-xs text-slate-600 truncate">
+                          Diretor: <strong className="text-slate-800 font-medium">{contrato.diretor_projeto}</strong>
                         </span>
-                        <span className="text-xs text-theme-weak truncate">{contrato.diretor_projeto}</span>
                       </div>
                       
-                      <div className="bg-aldebaran-dark0 rounded-none p-2.5 flex justify-between items-center text-xs">
-                        <div className="flex items-center gap-1.5 text-theme-weak">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>{formatarData(contrato.data_entrega_final)}</span>
+                      {/* Datas e Prazos */}
+                      <div className="bg-slate-50 border border-slate-200/70 rounded-lg p-2.5 flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-1.5 text-slate-500">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Entrega: {formatarData(contrato.data_entrega_final)}</span>
                         </div>
-                        <div className="font-mono font-bold">
-                          {contrato.status === 'concluido' ? (
-                            <span className="text-emerald-400">Concluído</span>
+                        <div className="font-mono font-semibold">
+                          {isConcluido(contrato.status) ? (
+                            <span className="text-emerald-700">Finalizado</span>
                           ) : diasRestantes !== null ? (
                             diasRestantes < 0 ? (
-                              <span className="text-rose-500">Atrasado ({Math.abs(diasRestantes)}d)</span>
+                              <span className="text-rose-700">Atrasado ({Math.abs(diasRestantes)}d)</span>
+                            ) : diasRestantes <= 7 ? (
+                              <span className="text-amber-700">{diasRestantes} dias</span>
                             ) : (
-                              <span className="text-theme-normal">{diasRestantes} dias</span>
+                              <span className="text-slate-700">{diasRestantes} dias</span>
                             )
                           ) : (
-                            <span className="text-slate-600">-</span>
+                            <span className="text-slate-400">-</span>
                           )}
                         </div>
                       </div>
                     </div>
 
                     {/* Rodapé do Card */}
-                    <div className="mt-auto pt-3 border-t border-aldebaran-border">
+                    <div className="pt-3 border-t border-slate-100">
                       <button
                         onClick={() => navigate(`/contratos/${contrato.id}`)}
-                        className="w-full py-2 bg-transparent hover:bg-aldebaran-gold text-theme-normal hover:text-aldebaran-dark rounded-none text-xs font-bold border border-aldebaran-border hover:border-transparent transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2 bg-slate-50 hover:bg-primary text-slate-700 hover:text-white rounded-lg text-xs font-semibold border border-slate-200 hover:border-transparent transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                       >
                         Ver Detalhes do Contrato
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -253,9 +297,9 @@ const Contratos = () => {
               })}
             </div>
           ) : (
-            <div className="py-16 flex flex-col items-center justify-center text-theme-weak gap-3 bg-aldebaran-dark rounded-none border border-dashed border-aldebaran-border">
-              <FolderOpen className="w-12 h-12 text-theme-normal" />
-              <p className="text-sm font-medium">Nenhum contrato encontrado com os filtros selecionados.</p>
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-3 bg-white rounded-xl border border-dashed border-slate-200">
+              <FolderOpen className="w-10 h-10 text-slate-300" />
+              <p className="text-sm font-medium text-slate-500">Nenhum contrato localizado com os filtros selecionados.</p>
             </div>
           )}
         </div>

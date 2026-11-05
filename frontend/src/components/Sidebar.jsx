@@ -1,201 +1,130 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  PlusCircle, 
+import { NavLink, Link } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  Plus,
+  ChevronsLeft,
+  ChevronsRight,
+  Layers,
   Compass,
-  FileSpreadsheet,
-  ChevronLeft,
-  ChevronRight,
-  FolderOpen,
-  LogOut
+  TreePine,
 } from 'lucide-react';
-import { exportarCSV } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+
+const STORAGE_KEY = 'projectsight_sidebar_expanded';
+
+const navItems = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/area/topografia', label: 'Topografia', icon: Compass },
+  { to: '/area/geologia', label: 'Geologia', icon: Layers },
+  { to: '/area/meio-ambiente', label: 'Meio Ambiente', icon: TreePine },
+  { to: '/responsaveis', label: 'Equipe Técnica', icon: Users },
+];
 
 const Sidebar = () => {
- const [isExpanded, setIsExpanded] = useState(true);
- const { user, logoutUser } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(() => localStorage.getItem(STORAGE_KEY) !== 'false');
 
- return (
-  <aside 
-  className={`bg-aldebaran-gray border-r border-aldebaran-border flex flex-col justify-between shrink-0 h-screen sticky top-0 transition-all duration-300 relative ${
-  isExpanded ? 'w-64' : 'w-20'
-  }`}
-  >
-  
-  
+  const toggle = () => {
+    setIsExpanded((prev) => {
+      localStorage.setItem(STORAGE_KEY, String(!prev));
+      return !prev;
+    });
+  };
 
-  {/* BRAND HEADER */}
-  <div className={`p-4 bg-[#111827] border-b border-[#1f2937] flex items-center ${isExpanded ? 'justify-start' : 'justify-center'} min-h-[70px]`}>
-  {isExpanded ? (
-    <img src="/logo.png" alt="Aldebaran Consultoria" className="h-8 w-auto object-contain animate-fade-in" />
-  ) : (
-    <div className="w-8 h-8 bg-aldebaran-orange flex items-center justify-center shrink-0 animate-fade-in shadow-sm">
-      <span className="text-white font-extrabold text-sm font-sans tracking-tighter">AL</span>
-    </div>
-  )}
-  </div>
-
-  {/* NAVIGATION ITEMS */}
-  <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto overflow-x-hidden">
-  
-  <div className={`transition-all duration-300 overflow-hidden ${isExpanded ? 'h-auto opacity-100 mb-4' : 'h-0 opacity-0 mb-0'}`}>
-  <span className="text-[10px] font-bold uppercase tracking-wider text-theme-weak px-3 block whitespace-nowrap">
-  Painel Operacional
-  </span>
-  </div>
-  
-  <NavLink 
-  to="/" 
-  title={!isExpanded ? "Dashboard" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <LayoutDashboard className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Dashboard Geral
-  </span>
-  </NavLink>
-
-  <NavLink 
-  to="/area/topografia" 
-  title={!isExpanded ? "Topografia" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <FolderOpen className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Topografia
-  </span>
-  </NavLink>
-
-  <NavLink 
-  to="/area/geologia" 
-  title={!isExpanded ? "Geologia" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <FolderOpen className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Geologia
-  </span>
-  </NavLink>
-
-  <NavLink 
-  to="/area/meio-ambiente" 
-  title={!isExpanded ? "Meio Ambiente" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <FolderOpen className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Meio Ambiente
-  </span>
-  </NavLink>
-
-  <NavLink 
-  to="/responsaveis" 
-  title={!isExpanded ? "Equipe" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <Users className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Equipe
-  </span>
-  </NavLink>
-
-  <NavLink 
-  to="/contratos/novo" 
-  title={!isExpanded ? "Novo Contrato" : ""}
-  className={({ isActive }) => 
-  `flex items-center gap-3 py-2.5 rounded-none text-sm font-bold transition-all ${isExpanded ? 'px-3' : 'justify-center px-0'} ${
-  isActive 
-  ? 'bg-aldebaran-dark text-aldebaran-gold border-l-4 border-l-aldebaran-orange border-y border-r border-aldebaran-border shadow-sm' 
-  : 'text-theme-weak hover:bg-aldebaran-dark hover:text-theme-normal border-l-4 border-l-transparent border-y border-r border-y-transparent border-r-transparent'
-  }`
-  }
-  >
-  <PlusCircle className="w-5 h-5 shrink-0" />
-  <span className={`transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-  Novo Contrato
-  </span>
-  </NavLink>
-  </nav>
-
-  {/* TOGGLE FOOTER */}
-  <div className="p-4 border-t border-aldebaran-border space-y-3">
-    {/* USER PROFILE INFO */}
-    {isExpanded && (
-      <div className="flex items-center justify-between p-2.5 bg-aldebaran-dark/40 border border-aldebaran-border rounded-none">
-        <div className="flex items-center gap-2 overflow-hidden">
-          <div className="w-8 h-8 rounded-none bg-amber-500/10 border border-amber-500/25 flex items-center justify-center shrink-0 text-amber-500 font-bold text-xs uppercase">
-            {user?.nome?.substring(0, 2) || 'AD'}
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-xs font-bold text-theme-strong truncate block">{user?.nome || 'Usuário'}</span>
-            <span className="text-[9px] font-bold text-theme-weak uppercase tracking-wider block">{user?.username || 'username'}</span>
-          </div>
-        </div>
+  return (
+    <aside
+      className={`bg-card border-r border-slate-200 flex flex-col shrink-0 h-screen sticky top-0 transition-[width] duration-200 z-30 ${
+        isExpanded ? 'w-60' : 'w-[68px]'
+      }`}
+    >
+      {/* MARCA (Tipográfica pura, sem logo e sem ícone) */}
+      <div
+        className={`h-16 border-b border-slate-200 flex items-center shrink-0 ${
+          isExpanded ? 'px-5' : 'justify-center'
+        }`}
+      >
+        {isExpanded ? (
+          <Link to="/" className="flex flex-col min-w-0 focus-visible:outline-none">
+            <span className="text-base font-bold tracking-tight text-slate-900 leading-tight">
+              Project<span className="text-primary">Sight</span>
+            </span>
+            <span className="text-[11px] font-medium text-slate-500 tracking-wide">
+              Contratos e prazos
+            </span>
+          </Link>
+        ) : (
+          <Link
+            to="/"
+            className="text-sm font-bold tracking-tight text-slate-900 focus-visible:outline-none"
+            title="ProjectSight"
+          >
+            P<span className="text-primary">S</span>
+          </Link>
+        )}
       </div>
-    )}
 
-    <button
-      onClick={logoutUser}
-      title="Sair do Sistema"
-      className="flex items-center justify-center gap-2 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 rounded-none text-xs font-bold border border-red-500/20 transition shadow-sm w-full"
-    >
-      <LogOut className="w-4 h-4 shrink-0" />
-      {isExpanded && (
-        <span className="whitespace-nowrap overflow-hidden animate-fade-in">
-          Sair
-        </span>
-      )}
-    </button>
+      {/* AÇÃO PRINCIPAL */}
+      <div className={`pt-4 ${isExpanded ? 'px-3' : 'px-3.5'}`}>
+        <Link
+          to="/contratos/novo"
+          title={!isExpanded ? 'Novo contrato' : undefined}
+          aria-label="Novo contrato"
+          className="flex items-center justify-center gap-2 h-9 rounded-md bg-primary text-primary-foreground text-sm font-medium shadow-xs hover:bg-primary-hover transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-1"
+        >
+          <Plus className="w-4 h-4 shrink-0" aria-hidden="true" />
+          {isExpanded && <span>Novo contrato</span>}
+        </Link>
+      </div>
 
-    <button
-      onClick={() => setIsExpanded(!isExpanded)}
-      title={isExpanded ? "Recolher Menu" : "Expandir Menu"}
-      className="flex items-center justify-center gap-2 py-2.5 bg-aldebaran-dark hover:bg-aldebaran-border text-theme-weak hover:text-theme-strong rounded-none text-xs font-bold border border-aldebaran-border transition shadow-sm w-full"
-    >
-      {isExpanded ? <ChevronLeft className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
-      {isExpanded && (
-        <span className="whitespace-nowrap overflow-hidden animate-fade-in">
-          Recolher Aba
-        </span>
-      )}
-    </button>
-  </div>
+      {/* NAVEGAÇÃO */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto overflow-x-hidden" aria-label="Navegação principal">
+        {isExpanded && (
+          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">Gestão</p>
+        )}
 
- </aside>
- );
+        {navItems.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            title={!isExpanded ? label : undefined}
+            className={({ isActive }) =>
+              `relative flex items-center gap-3 h-10 rounded-md text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 ${
+                isExpanded ? 'px-3' : 'justify-center'
+              } ${
+                isActive
+                  ? 'bg-primary-light text-primary font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r before:bg-primary'
+                  : 'text-slate-600 font-medium hover:bg-muted hover:text-slate-900'
+              }`
+            }
+          >
+            <Icon className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+            {isExpanded ? <span className="truncate">{label}</span> : <span className="sr-only">{label}</span>}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* RECOLHER */}
+      <div className="p-3 border-t border-slate-200">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={isExpanded ? 'Recolher menu' : 'Expandir menu'}
+          title={isExpanded ? 'Recolher menu' : 'Expandir menu'}
+          className="w-full h-9 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-900 hover:bg-muted rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronsLeft className="w-4 h-4" aria-hidden="true" />
+              <span>Recolher</span>
+            </>
+          ) : (
+            <ChevronsRight className="w-4 h-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
+    </aside>
+  );
 };
 
 export default Sidebar;

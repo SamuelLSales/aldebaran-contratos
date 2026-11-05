@@ -1,1018 +1,1299 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
- ArrowLeft, 
- Edit3, 
- Plus, 
- Trash2, 
- User, 
- Calendar, 
- Clock, 
- Check, 
- AlertTriangle, 
- History,
- FileText,
- Save,
- X,
+  ArrowLeft, 
+  Edit3, 
+  Plus, 
+  Trash2, 
+  User, 
+  Calendar, 
+  Clock, 
+  Check, 
+  AlertTriangle, 
+  History,
+  FileText,
+  Save, 
+  X,
   ChevronDown,
   ChevronUp,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckCircle2,
+  FolderOpen,
+  MapPin,
+  Compass,
+  Layers,
+  TreePine,
+  CheckCircle,
+  Circle,
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
 import { 
- getContrato, 
- updateContrato, 
- deleteContrato,
- createFase, 
- updateFase, 
- deleteFase, 
- createEtapa, 
- updateEtapa, 
- deleteEtapa, 
- getResponsaveis,
+  getContrato, 
+  updateContrato, 
+  deleteContrato,
+  createFase, 
+  updateFase, 
+  deleteFase, 
+  createEtapa, 
+  updateEtapa, 
+  deleteEtapa, 
+  getResponsaveis,
   exportarCSV
 } from '../services/api';
 import StatusBadge from '../components/StatusBadge';
 import ProgressBar from '../components/ProgressBar';
+import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const DetalheContrato = () => {
- const { id } = useParams();
- const navigate = useNavigate();
- const { user } = useAuth();
- 
- const [contrato, setContrato] = useState(null);
- const [responsaveis, setResponsaveis] = useState([]);
- const [loading, setLoading] = useState(true);
- const [error, setError] = useState(null);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const toast = useToast();
 
- // Estados dos Modais
- const [modalContratoAberto, setModalContratoAberto] = useState(false);
- const [modalFaseAberto, setModalFaseAberto] = useState(false);
- const [fasesExpandidas, setFasesExpandidas] = useState({});
+  // Diálogo de confirmação (substitui window.confirm): { titulo, mensagem, rotulo, acao }
+  const [confirmacao, setConfirmacao] = useState(null);
+  const [confirmando, setConfirmando] = useState(false);
+
+  const executarConfirmacao = async () => {
+    try {
+      setConfirmando(true);
+      await confirmacao.acao();
+    } finally {
+      setConfirmando(false);
+      setConfirmacao(null);
+    }
+  };
+  
+  const [contrato, setContrato] = useState(null);
+  const [responsaveis, setResponsaveis] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Aba ativa: 'cronograma' ou 'historico'
+  const [abaAtiva, setAbaAtiva] = useState('cronograma');
+
+  // Estados dos Modais
+  const [modalContratoAberto, setModalContratoAberto] = useState(false);
+  const [modalFaseAberto, setModalFaseAberto] = useState(false);
+  const [fasesExpandidas, setFasesExpandidas] = useState({});
   const [modalEtapaAberto, setModalEtapaAberto] = useState(false);
 
- // Estados dos Formulários
- const [editContratoForm, setEditContratoForm] = useState({});
- const [faseForm, setFaseForm] = useState({ id: null, nome_fase: '', ordem: 1 });
- const [etapaForm, setEtapaForm] = useState({
- id: null, // se preenchido, é edição
- fase_id: null,
- nome_tarefa: '',
- responsavel: '',
- progresso: 0,
- data_inicio: '',
- data_termino: '',
- dias_previstos: 0,
- observacoes: ''
- });
+  // Estados dos Formulários
+  const [editContratoForm, setEditContratoForm] = useState({});
+  const [faseForm, setFaseForm] = useState({ id: null, nome_fase: '', ordem: 1 });
+  const [etapaForm, setEtapaForm] = useState({
+    id: null,
+    fase_id: null,
+    nome_tarefa: '',
+    responsavel: '',
+    progresso: 0,
+    data_inicio: '',
+    data_termino: '',
+    dias_previstos: 0,
+    observacoes: ''
+  });
 
- const carregarDados = async () => {
- try {
- setLoading(true);
- const [dadosContrato, listaResponsaveis] = await Promise.all([
- getContrato(id),
- getResponsaveis()
- ]);
- setContrato(dadosContrato);
- setEditContratoForm(dadosContrato);
- setResponsaveis(listaResponsaveis);
- setError(null);
- } catch (err) {
- console.error('Erro ao buscar detalhes do contrato:', err);
- setError('Erro ao carregar dados do contrato. Certifique-se de que o backend está online.');
- } finally {
- setLoading(false);
- }
- };
-
-  const handleExcluirContrato = async () => {
-    if (window.confirm(`ATENÇÃO: Deseja realmente excluir este contrato? Esta ação é irreversível e apagará todas as fases, etapas e históricos associados.`)) {
-      try {
-        await deleteContrato(contrato.id);
-        navigate('/contratos');
-      } catch (err) {
-        console.error('Erro ao excluir contrato:', err);
-        alert('Erro ao excluir o contrato. Verifique o console.');
-      }
+  const carregarDados = async () => {
+    try {
+      setLoading(true);
+      const [dadosContrato, listaResponsaveis] = await Promise.all([
+        getContrato(id),
+        getResponsaveis()
+      ]);
+      setContrato(dadosContrato);
+      setEditContratoForm(dadosContrato);
+      setResponsaveis(listaResponsaveis);
+      setError(null);
+    } catch (err) {
+      console.error('Erro ao buscar detalhes do contrato:', err);
+      setError('Erro ao carregar dados do contrato. Certifique-se de que o backend está online.');
+    } finally {
+      setLoading(false);
     }
   };
 
- useEffect(() => {
- carregarDados();
- }, [id]);
+  const handleExcluirContrato = () => {
+    setConfirmacao({
+      titulo: 'Excluir contrato',
+      mensagem: 'Esta ação é irreversível e apagará todas as fases, etapas e históricos associados a este contrato.',
+      rotulo: 'Excluir contrato',
+      acao: async () => {
+        try {
+          await deleteContrato(contrato.id);
+          toast.success('Contrato excluído.');
+          navigate('/contratos');
+        } catch (err) {
+          console.error('Erro ao excluir contrato:', err);
+          toast.error('Não foi possível excluir o contrato.');
+        }
+      },
+    });
+  };
 
- // Formatação de data
- const formatarData = (dataStr) => {
- if (!dataStr) return '-';
- const date = new Date(dataStr);
- return date.toLocaleDateString('pt-BR');
- };
+  useEffect(() => {
+    carregarDados();
+  }, [id]);
 
- const formatarDataHora = (dataStr) => {
- if (!dataStr) return '-';
- const date = new Date(dataStr);
- return date.toLocaleString('pt-BR');
- };
+  const formatarData = (dataStr) => {
+    if (!dataStr) return '-';
+    try {
+      const dataApenas = dataStr.split('T')[0];
+      const [ano, mes, dia] = dataApenas.split('-');
+      return `${dia}/${mes}/${ano}`;
+    } catch (e) {
+      return dataStr;
+    }
+  };
 
- // Obter as iniciais de um colaborador para o avatar
- const obterIniciais = (nome) => {
- if (!nome) return 'U';
- const partes = nome.split(' ');
- if (partes.length > 1) {
- return (partes[0][0] + partes[1][0]).toUpperCase();
- }
- return nome.slice(0, 2).toUpperCase();
- };
+  const formatarDataHora = (dataStr) => {
+    if (!dataStr) return '-';
+    try {
+      const d = new Date(dataStr);
+      return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    } catch (e) {
+      return dataStr;
+    }
+  };
 
- // Cálculo de Progresso Geral do Contrato
- const calcularProgressoGeral = () => {
- if (!contrato || !contrato.fases) return 0;
- const todasEtapas = contrato.fases.flatMap(f => f.etapas || []);
- if (todasEtapas.length === 0) return 0;
- const soma = todasEtapas.reduce((acc, e) => acc + (e.progresso || 0), 0);
- return (soma / todasEtapas.length) * 100;
- };
+  const calcularDiasRestantes = (dataFinal) => {
+    if (!dataFinal) return null;
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const dataApenas = dataFinal.split('T')[0];
+    const partes = dataApenas.split('-');
+    if (partes.length < 3) return null;
+    const [ano, mes, dia] = partes;
+    const entrega = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+    const diffTime = entrega - hoje;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const obterIniciais = (nome) => {
+    if (!nome) return 'U';
+    const partes = nome.trim().split(' ');
+    if (partes.length > 1) {
+      return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+    }
+    return nome.slice(0, 2).toUpperCase();
+  };
+
+  const calcularProgressoGeral = () => {
+    if (!contrato || !contrato.fases) return 0;
+    const todasEtapas = contrato.fases.flatMap(f => f.etapas || []);
+    if (todasEtapas.length === 0) return 0;
+    const soma = todasEtapas.reduce((acc, e) => acc + (e.progresso || 0), 0);
+    return Math.round((soma / todasEtapas.length) * 100);
+  };
 
   const toggleFase = (faseId) => {
     setFasesExpandidas(prev => ({
       ...prev,
-      [faseId]: prev[faseId] === undefined ? false : !prev[faseId]
+      [faseId]: prev[faseId] === false ? true : false
     }));
   };
 
- // --- FUNÇÕES DE AÇÃO ---
+  // 1. Atualizar Contrato
+  const handleSalvarContrato = async (e) => {
+    e.preventDefault();
+    try {
+      const dataInicio = editContratoForm.data_inicio ? new Date(editContratoForm.data_inicio).toISOString() : null;
+      const dataEntrega = editContratoForm.data_entrega_final ? new Date(editContratoForm.data_entrega_final).toISOString() : null;
+      
+      await updateContrato(contrato.id, {
+        ...editContratoForm,
+        data_inicio: dataInicio,
+        data_entrega_final: dataEntrega,
+        dias_campo_total: parseInt(editContratoForm.dias_campo_total) || 0
+      });
+      setModalContratoAberto(false);
+      carregarDados();
+    } catch (err) {
+      console.error('Erro ao atualizar contrato:', err);
+      toast.error('Erro ao atualizar dados do contrato.');
+    }
+  };
 
- // 1. Atualizar Contrato (Informações Gerais)
- const handleSalvarContrato = async (e) => {
- e.preventDefault();
- try {
- const dataInicio = editContratoForm.data_inicio ? new Date(editContratoForm.data_inicio).toISOString() : null;
- const dataEntrega = editContratoForm.data_entrega_final ? new Date(editContratoForm.data_entrega_final).toISOString() : null;
- 
- await updateContrato(contrato.id, {
- ...editContratoForm,
- data_inicio: dataInicio,
- data_entrega_final: dataEntrega,
- dias_campo_total: parseInt(editContratoForm.dias_campo_total) || 0
- });
- setModalContratoAberto(false);
- carregarDados();
- } catch (err) {
- console.error('Erro ao atualizar contrato:', err);
- alert('Erro ao atualizar dados do contrato.');
- }
- };
+  // 2. Salvar Fase
+  const handleSalvarFase = async (e) => {
+    e.preventDefault();
+    try {
+      if (faseForm.id) {
+        await updateFase(faseForm.id, {
+          nome_fase: faseForm.nome_fase,
+          ordem: parseInt(faseForm.ordem) || 1
+        });
+      } else {
+        await createFase({
+          contrato_id: contrato.id,
+          nome_fase: faseForm.nome_fase,
+          ordem: parseInt(faseForm.ordem) || 1
+        });
+      }
+      setModalFaseAberto(false);
+      setFaseForm({ id: null, nome_fase: '', ordem: (contrato.fases?.length || 0) + 1 });
+      carregarDados();
+    } catch (err) {
+      console.error('Erro ao salvar fase:', err);
+      toast.error('Erro ao salvar os dados da fase.');
+    }
+  };
 
- // 2. Salvar Fase (Criar ou Editar)
- const handleSalvarFase = async (e) => {
- e.preventDefault();
- try {
- if (faseForm.id) {
- await updateFase(faseForm.id, {
- nome_fase: faseForm.nome_fase,
- ordem: parseInt(faseForm.ordem) || 1
- });
- } else {
- await createFase({
- contrato_id: contrato.id,
- nome_fase: faseForm.nome_fase,
- ordem: parseInt(faseForm.ordem) || 1
- });
- }
- setModalFaseAberto(false);
- setFaseForm({ id: null, nome_fase: '', ordem: contrato.fases.length + 1 });
- carregarDados();
- } catch (err) {
- console.error('Erro ao salvar fase:', err);
- alert('Erro ao salvar os dados da fase.');
- }
- };
+  const abrirModalCriarFase = () => {
+    setFaseForm({ id: null, nome_fase: '', ordem: contrato.fases ? contrato.fases.length + 1 : 1 });
+    setModalFaseAberto(true);
+  };
 
- const abrirModalCriarFase = () => {
- setFaseForm({ id: null, nome_fase: '', ordem: contrato.fases ? contrato.fases.length + 1 : 1 });
- setModalFaseAberto(true);
- };
+  const abrirModalEditarFase = (fase) => {
+    setFaseForm({ id: fase.id, nome_fase: fase.nome_fase, ordem: fase.ordem });
+    setModalFaseAberto(true);
+  };
 
- const abrirModalEditarFase = (fase) => {
- setFaseForm({ id: fase.id, nome_fase: fase.nome_fase, ordem: fase.ordem });
- setModalFaseAberto(true);
- };
+  const handleExcluirFase = (faseId, nome) => {
+    setConfirmacao({
+      titulo: 'Excluir fase',
+      mensagem: `A fase "${nome}" e todas as suas etapas serão apagadas definitivamente.`,
+      rotulo: 'Excluir fase',
+      acao: async () => {
+        try {
+          await deleteFase(faseId);
+          toast.success('Fase excluída.');
+          carregarDados();
+        } catch (err) {
+          console.error('Erro ao excluir fase:', err);
+          toast.error('Não foi possível excluir a fase.');
+        }
+      },
+    });
+  };
 
- // Excluir Fase
- const handleExcluirFase = async (faseId, nome) => {
- if (window.confirm(`Deseja realmente excluir a fase "${nome}"? Todas as etapas internas serão apagadas definitivamente!`)) {
- try {
- await deleteFase(faseId);
- carregarDados();
- } catch (err) {
- console.error('Erro ao excluir fase:', err);
- alert('Erro ao excluir fase.');
- }
- }
- };
+  // 3. Etapas
+  const abrirModalCriarEtapa = (faseId) => {
+    setEtapaForm({
+      id: null,
+      fase_id: faseId,
+      nome_tarefa: '',
+      responsavel: responsaveis[0]?.nome || '',
+      progresso: 0,
+      data_inicio: '',
+      data_termino: '',
+      dias_previstos: 0,
+      observacoes: ''
+    });
+    setModalEtapaAberto(true);
+  };
 
- // 3. Abrir Modal de Etapa (Criar)
- const abrirModalCriarEtapa = (faseId) => {
- setEtapaForm({
- id: null,
- fase_id: faseId,
- nome_tarefa: '',
- responsavel: responsaveis[0]?.nome || '',
- progresso: 0,
- data_inicio: '',
- data_termino: '',
- dias_previstos: 0,
- observacoes: ''
- });
- setModalEtapaAberto(true);
- };
+  const abrirModalEditarEtapa = (etapa) => {
+    setEtapaForm({
+      id: etapa.id,
+      fase_id: etapa.fase_id,
+      nome_tarefa: etapa.nome_tarefa,
+      responsavel: etapa.responsavel,
+      progresso: Math.round(etapa.progresso * 100),
+      data_inicio: etapa.data_inicio ? etapa.data_inicio.split('T')[0] : '',
+      data_termino: etapa.data_termino ? etapa.data_termino.split('T')[0] : '',
+      dias_previstos: etapa.dias_previstos,
+      observacoes: etapa.observacoes || ''
+    });
+    setModalEtapaAberto(true);
+  };
 
- // Abrir Modal de Etapa (Editar)
- const abrirModalEditarEtapa = (etapa) => {
- setEtapaForm({
- id: etapa.id,
- fase_id: etapa.fase_id,
- nome_tarefa: etapa.nome_tarefa,
- responsavel: etapa.responsavel,
- progresso: Math.round(etapa.progresso * 100), // convert 0.5 to 50
- data_inicio: etapa.data_inicio ? etapa.data_inicio.split('T')[0] : '',
- data_termino: etapa.data_termino ? etapa.data_termino.split('T')[0] : '',
- dias_previstos: etapa.dias_previstos,
- observacoes: etapa.observacoes || ''
- });
- setModalEtapaAberto(true);
- };
+  const handleSalvarEtapa = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        nome_tarefa: etapaForm.nome_tarefa,
+        responsavel: etapaForm.responsavel,
+        progresso: parseFloat(etapaForm.progresso) / 100,
+        data_inicio: etapaForm.data_inicio ? new Date(etapaForm.data_inicio).toISOString() : null,
+        data_termino: etapaForm.data_termino ? new Date(etapaForm.data_termino).toISOString() : null,
+        dias_previstos: parseInt(etapaForm.dias_previstos) || 0,
+        observacoes: etapaForm.observacoes
+      };
 
- // Salvar Etapa (Criar ou Editar)
- const handleSalvarEtapa = async (e) => {
- e.preventDefault();
- try {
- const payload = {
- nome_tarefa: etapaForm.nome_tarefa,
- responsavel: etapaForm.responsavel,
- progresso: parseFloat(etapaForm.progresso) / 100, // convert 50 to 0.5
- data_inicio: etapaForm.data_inicio ? new Date(etapaForm.data_inicio).toISOString() : null,
- data_termino: etapaForm.data_termino ? new Date(etapaForm.data_termino).toISOString() : null,
- dias_previstos: parseInt(etapaForm.dias_previstos) || 0,
- observacoes: etapaForm.observacoes
- };
+      if (etapaForm.id) {
+        await updateEtapa(etapaForm.id, payload);
+      } else {
+        await createEtapa({
+          fase_id: etapaForm.fase_id,
+          ...payload
+        });
+      }
+      setModalEtapaAberto(false);
+      carregarDados();
+    } catch (err) {
+      console.error('Erro ao salvar etapa:', err);
+      toast.error('Erro ao salvar os dados da etapa.');
+    }
+  };
 
- if (etapaForm.id) {
- // Editar
- await updateEtapa(etapaForm.id, payload);
- } else {
- // Criar
- await createEtapa({
- fase_id: etapaForm.fase_id,
- ...payload
- });
- }
- setModalEtapaAberto(false);
- carregarDados();
- } catch (err) {
- console.error('Erro ao salvar etapa:', err);
- alert('Erro ao salvar os dados da etapa.');
- }
- };
+  const handleExcluirEtapa = (etapaId, nome) => {
+    setConfirmacao({
+      titulo: 'Excluir etapa',
+      mensagem: `Deseja realmente excluir a etapa "${nome}"?`,
+      rotulo: 'Excluir etapa',
+      acao: async () => {
+        try {
+          await deleteEtapa(etapaId);
+          toast.success('Etapa excluída.');
+          carregarDados();
+        } catch (err) {
+          console.error('Erro ao excluir etapa:', err);
+          toast.error('Não foi possível remover a etapa.');
+        }
+      },
+    });
+  };
 
- // Excluir Etapa
- const handleExcluirEtapa = async (etapaId, nome) => {
- if (window.confirm(`Deseja realmente deletar a etapa "${nome}"?`)) {
- try {
- await deleteEtapa(etapaId);
- carregarDados();
- } catch (err) {
- console.error('Erro ao excluir etapa:', err);
- alert('Erro ao remover etapa.');
- }
- }
- };
+  const handleProgressoSlider = async (etapa, novoValorDecimal) => {
+    try {
+      await updateEtapa(etapa.id, { progresso: novoValorDecimal });
+      setContrato(prev => {
+        const fasesAtualizadas = prev.fases.map(f => {
+          const etapasAtualizadas = f.etapas.map(e => {
+            if (e.id === etapa.id) return { ...e, progresso: novoValorDecimal };
+            return e;
+          });
+          return { ...f, etapas: etapasAtualizadas };
+        });
+        return { ...prev, fases: fasesAtualizadas };
+      });
+      const dadosAtualizados = await getContrato(id);
+      setContrato(dadosAtualizados);
+    } catch (err) {
+      console.error('Erro ao atualizar progresso:', err);
+    }
+  };
 
- // Slider de alteração direta de progresso no card
- const handleProgressoSlider = async (etapa, novoValorDecimal) => {
- try {
- await updateEtapa(etapa.id, { progresso: novoValorDecimal });
- // Atualizar o state local imediatamente para fluidez visual e depois recarregar
- setContrato(prev => {
- const fasesAtualizadas = prev.fases.map(f => {
- const etapasAtualizadas = f.etapas.map(e => {
- if (e.id === etapa.id) return { ...e, progresso: novoValorDecimal };
- return e;
- });
- return { ...f, etapas: etapasAtualizadas };
- });
- return { ...prev, fases: fasesAtualizadas };
- });
- // Recarregar dados em background para recalcular status e históricos
- const dadosAtualizados = await getContrato(id);
- setContrato(dadosAtualizados);
- } catch (err) {
- console.error('Erro ao atualizar progresso rápido:', err);
- }
- };
+  const handleConcluirEtapa = (etapa) => {
+    handleProgressoSlider(etapa, 1.0);
+  };
 
- // Marcar como Concluída (100%)
- const handleConcluirEtapa = (etapa) => {
- handleProgressoSlider(etapa, 1.0);
- };
+  if (loading && !contrato) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-slate-500 font-medium text-xs">Carregando detalhes do contrato...</p>
+        </div>
+      </div>
+    );
+  }
 
- if (loading && !contrato) {
- return (
- <div className="flex items-center justify-center min-h-screen bg-aldebaran-dark text-theme-strong">
- <div className="flex flex-col items-center gap-4">
- <div className="w-12 h-12 border-4 border-aldebaran-gold border-t-transparent rounded-full animate-spin"></div>
- <p className="text-theme-weak font-medium">Carregando detalhes do contrato...</p>
- </div>
- </div>
- );
- }
+  if (error) {
+    return (
+      <div className="p-8 text-slate-900 max-w-xl mx-auto mt-12 bg-rose-50 border border-rose-200 rounded-xl">
+        <div className="flex items-center gap-2 text-rose-700">
+          <AlertTriangle className="w-5 h-5" />
+          <h2 className="text-base font-bold">Erro de Carregamento</h2>
+        </div>
+        <p className="text-slate-600 text-xs mt-2">{error}</p>
+        <button 
+          onClick={() => navigate('/')}
+          className="mt-4 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-50 transition"
+        >
+          Voltar ao Dashboard
+        </button>
+      </div>
+    );
+  }
 
- if (error) {
- return (
- <div className="p-6 text-theme-strong max-w-xl mx-auto mt-12 bg-transparent text-rose-500 border border-rose-500/20 rounded-none">
- <div className="flex items-center gap-2 text-rose-400">
- <AlertTriangle className="w-6 h-6" />
- <h2 className="text-lg font-bold">Erro de Carregamento</h2>
- </div>
- <p className="text-theme-normal mt-2">{error}</p>
- <button 
- onClick={() => navigate('/')}
- className="mt-4 px-4 py-2 bg-aldebaran-gray text-theme-strong rounded-none hover:bg-aldebaran-gray transition"
- >
- Voltar ao Dashboard
- </button>
- </div>
- );
- }
+  const progressoGeral = calcularProgressoGeral();
+  const diasRestantes = calcularDiasRestantes(contrato.data_entrega_final);
 
- const progressoGeral = calcularProgressoGeral();
+  // Totais de etapas
+  const todasEtapas = contrato.fases?.flatMap(f => f.etapas || []) || [];
+  const totalEtapasCount = todasEtapas.length;
+  const etapasConcluidasCount = todasEtapas.filter(e => (e.progresso || 0) >= 1.0).length;
 
- // Cores das Fases na Timeline
- const faseColors = {
- 1: { border: 'border-l-blue-500', text: 'text-aldebaran-gold', badge: 'bg-aldebaran-gold/10 text-aldebaran-gold' },
- 2: { border: 'border-l-emerald-500', text: 'text-emerald-400', badge: 'bg-transparent text-emerald-500 text-emerald-400' },
- 3: { border: 'border-l-amber-500', text: 'text-amber-400', badge: 'bg-amber-500/10 text-amber-400' }
- };
+  const areaStyles = {
+    Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
+    Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
+    'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
+  };
+  const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
 
- const getFaseColor = (ordem) => {
- return faseColors[ordem] || { border: 'border-l-slate-500', text: 'text-theme-weak', badge: 'bg-aldebaran-dark0/10 text-theme-weak' };
- };
-
- return (
- <div className="p-6 space-y-6 max-w-[1400px] mx-auto animate-fade-in">
- 
- {/* VOLTAR E AÇÕES DO TOPO */}
- <div className="flex items-center justify-between">
- <button 
- onClick={() => navigate('/')}
- className="flex items-center gap-2 text-theme-weak hover:text-theme-strong transition-all text-sm font-semibold group"
- >
- <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
- Voltar ao Dashboard
- </button>
-
- <div className="flex gap-3">
- <button
- onClick={exportarCSV}
- className="px-4 py-2 bg-transparent hover:bg-aldebaran-gray text-theme-weak hover:text-theme-strong border border-aldebaran-border rounded-none text-sm font-semibold transition flex items-center gap-2 hover:scale-[1.02]"
- >
- <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
- Baixar Planilha
- </button>
-
- {user?.role === 'admin' && (
-   <>
-     <button
-     onClick={() => setModalContratoAberto(true)}
-     className="px-4 py-2 bg-aldebaran-gray hover:bg-aldebaran-gray text-theme-normal border border-aldebaran-border rounded-none text-sm font-semibold transition flex items-center gap-2 hover:scale-[1.02]"
-     >
-     <Edit3 className="w-4 h-4" />
-     Editar Contrato
-     </button>
-
-     <button
-     onClick={handleExcluirContrato}
-     className="px-4 py-2 bg-transparent hover:bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:border-rose-500/50 rounded-none text-sm font-semibold transition flex items-center gap-2 hover:scale-[1.02]"
-     title="Excluir Contrato"
-     >
-     <Trash2 className="w-4 h-4" />
-     Excluir
-     </button>
-   </>
- )}
- </div>
- </div>
-
- {/* CABEÇALHO DO CONTRATO */}
- <div className="bg-aldebaran-gray border border-aldebaran-border p-6 rounded-none shadow-sm space-y-4">
- <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
- <div>
- <div className="flex items-center gap-3">
- <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold uppercase tracking-wider ${
- contrato.area === 'Topografia' ? 'bg-aldebaran-gold/10 text-aldebaran-gold' : 'bg-transparent text-yellow-500 text-yellow-400'
- }`}>
- {contrato.area}
- </span>
- <StatusBadge status={contrato.status} />
- </div>
- <h1 className="text-3xl font-extrabold text-theme-strong mt-2">{contrato.nome_projeto}</h1>
- <p className="text-theme-weak text-sm mt-1">
- Cliente: <span className="text-theme-normal font-semibold">{contrato.cliente}</span> | Executor: {contrato.empresa}
- </p>
- </div>
- 
- {/* Caixa de Prazos rápidos no canto */}
- <div className="bg-aldebaran-dark border border-aldebaran-border/80 px-4 py-3 rounded-none flex items-center gap-3 self-start md:self-auto min-w-[200px]">
- <Clock className="w-5 h-5 text-theme-weak" />
- <div>
- <span className="text-[10px] uppercase font-semibold text-theme-weak block">Prazo Final</span>
- <span className="text-sm font-bold text-theme-normal">{formatarData(contrato.data_entrega_final)}</span>
- </div>
- </div>
- </div>
-
- {/* Informações detalhadas em Grid */}
- <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-aldebaran-border/60 text-sm">
- <div>
- <span className="text-theme-weak text-xs block">Diretor do Projeto</span>
- <span className="text-theme-normal font-semibold mt-0.5 block">{contrato.diretor_projeto}</span>
- </div>
- <div>
- <span className="text-theme-weak text-xs block">Direitos Minerários</span>
- <span className="text-theme-normal font-semibold mt-0.5 block font-mono">{contrato.direitos_minerarios || '-'}</span>
- </div>
- <div>
- <span className="text-theme-weak text-xs block">Início das Atividades</span>
- <span className="text-theme-normal font-semibold mt-0.5 block">{formatarData(contrato.data_inicio)}</span>
- </div>
- <div>
- <span className="text-theme-weak text-xs block">Total de Dias de Campo</span>
- <span className="text-theme-normal font-semibold mt-0.5 block">{contrato.dias_campo_total} dias</span>
- </div>
- </div>
-
- {contrato.observacoes && (
- <div className="pt-3 border-t border-aldebaran-border/40 text-xs">
- <span className="text-theme-weak uppercase font-semibold block">Observações do Projeto:</span>
- <p className="text-theme-weak mt-1 leading-relaxed bg-aldebaran-dark/30 p-2.5 rounded-none border border-aldebaran-border/20">{contrato.observacoes}</p>
- </div>
- )}
- </div>
-
- {/* BARRA DE PROGRESSO GERAL DO CONTRATO */}
- <div className="bg-aldebaran-gray border border-aldebaran-border p-5 rounded-none shadow-sm">
- <div className="flex justify-between items-center mb-2">
- <span className="text-sm font-bold text-theme-strong">Progresso Geral do Contrato</span>
- <span className="text-sm font-extrabold text-aldebaran-gold font-mono">{Math.round(progressoGeral)}% concluído</span>
- </div>
- <ProgressBar value={progressoGeral} showText={false} />
- </div>
-
- {/* TIMELINE DE FASES E ETAPAS */}
- <div className="space-y-6">
- <div className="flex items-center justify-between border-b border-aldebaran-border pb-3">
- <h2 className="text-xl font-bold text-theme-strong flex items-center gap-2">
- <FileText className="w-5 h-5 text-aldebaran-goldDark" />
- Cronograma e Linha do Tempo
- </h2>
- </div>
-
- {contrato.fases && contrato.fases.length > 0 ? (
- <div className="space-y-8 pl-4 border-l border-aldebaran-border/60 ml-2">
- {contrato.fases
- .sort((a, b) => a.ordem - b.ordem)
- .map((fase) => {
- const faseEstilo = getFaseColor(fase.ordem);
- return (
- <div key={fase.id} className="relative space-y-4">
- {/* Indicador de Timeline */}
- <span className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-aldebaran-dark border-2 border-aldebaran-border"></span>
-
- {/* TÍTULO DA FASE */}
- <div 
-    onClick={() => toggleFase(fase.id)}
-    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-aldebaran-dark/40 p-3 rounded-none border border-aldebaran-border/50 cursor-pointer hover:border-aldebaran-border transition-colors"
-  >
- <div className="flex items-center gap-3">
- {fasesExpandidas[fase.id] === false ? <ChevronDown className="w-5 h-5 text-theme-weak" /> : <ChevronUp className="w-5 h-5 text-theme-weak" />}
-  <span className={`px-2.5 py-0.5 rounded-none text-xs font-bold font-mono uppercase ${faseEstilo.badge}`}>
- Fase {fase.ordem}
- </span>
- <h3 className="text-base font-bold text-theme-strong">{fase.nome_fase}</h3>
- </div>
- 
- {user?.role === 'admin' && (
- <div className="flex items-center gap-2 self-end sm:self-auto">
-  <button
-  onClick={(e) => { e.stopPropagation(); abrirModalCriarEtapa(fase.id); }}
-  className="px-3 py-1.5 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-xs transition flex items-center gap-1.5 border border-transparent"
-  >
- <Plus className="w-3.5 h-3.5" />
- Adicionar Etapa
- </button>
- <button
- onClick={(e) => { e.stopPropagation(); abrirModalEditarFase(fase); }}
- className="p-1 hover:bg-transparent text-theme-weak hover:text-aldebaran-gold rounded-none transition"
- title="Editar Fase"
- >
- <Edit3 className="w-4 h-4" />
- </button>
- <button
- onClick={(e) => { e.stopPropagation(); handleExcluirFase(fase.id, fase.nome_fase); }}
- className="p-1 hover:bg-transparent text-rose-500 text-theme-weak hover:text-rose-400 rounded-none transition"
- title="Remover Fase"
- >
- <Trash2 className="w-4 h-4" />
- </button>
- </div>
- )}
- </div>
-
-   {/* LISTA DE ETAPAS DA FASE (Layout em Linha/Compacto) */}
-  {fasesExpandidas[fase.id] !== false && (
-   <div className="flex flex-col gap-2 ml-2 animate-fade-in">
-  {fase.etapas && fase.etapas.length > 0 ? (
-  fase.etapas.map((etapa) => {
-  const progressoCem = Math.round(etapa.progresso * 100);
   return (
-  <div 
-  key={etapa.id} 
-  className={`bg-aldebaran-dark0 border border-aldebaran-border rounded-none p-3 flex flex-col xl:flex-row xl:items-center justify-between gap-4 hover:border-aldebaran-gold/50 transition-all ${
-  progressoCem === 100 ? 'border-emerald-500/20 bg-emerald-500/[0.02]' : ''
-  }`}
-  >
-  {/* Lado Esquerdo: Nome, Observação, Responsável, Datas */}
-  <div className="flex-1 flex flex-col gap-1 min-w-0">
-  <div className="flex items-center gap-2">
-  <h4 className={`text-sm font-bold text-theme-strong truncate ${progressoCem === 100 ? 'text-theme-normal' : ''}`}>
-  {etapa.nome_tarefa}
-  </h4>
-  {etapa.observacoes && (
-  <span className="text-[10px] text-theme-weak italic truncate hidden sm:block">
-  - {etapa.observacoes}
-  </span>
-  )}
-  </div>
-  
-  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-theme-weak">
-  <div className="flex items-center gap-1 font-semibold">
-  <div className="w-4 h-4 rounded-none bg-aldebaran-gold flex items-center justify-center text-white font-bold text-[8px]">
-  {obterIniciais(etapa.responsavel)}
-  </div>
-  <span className="text-theme-normal">{etapa.responsavel}</span>
-  </div>
-  <div className="flex items-center gap-1">
-  <Calendar className="w-3.5 h-3.5 text-theme-weak" />
-  <span>{formatarData(etapa.data_inicio)} → {formatarData(etapa.data_termino)}</span>
-  </div>
-  <div className="font-semibold text-theme-weak">
-  ({etapa.dias_previstos} dias)
-  </div>
-  </div>
-  </div>
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1500px] mx-auto animate-fade-in text-slate-900">
+      
+      {/* NAVEGAÇÃO SUPERIOR / CABEÇALHO DO PROJETO */}
+      <div className="space-y-3 pb-2 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <button 
+            onClick={() => navigate('/contratos')}
+            className="inline-flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors text-xs font-semibold group cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+            Voltar aos Contratos
+          </button>
 
-  {/* Lado Direito: Progresso e Ações */}
-  <div className="flex items-center justify-between xl:justify-end gap-4 shrink-0 border-t xl:border-t-0 border-aldebaran-border pt-3 xl:pt-0">
-  
-  {/* Botão de Concluir / Desfazer */}
-  <div className="flex items-center gap-3 w-32 sm:w-48 justify-end">
-  {progressoCem === 100 ? (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
-        <Check className="w-4 h-4" /> Finalizado
-      </span>
-      {user?.role === 'admin' && (
-        <button
-          onClick={() => handleProgressoSlider(etapa, 0)}
-          className="text-[10px] text-theme-weak hover:text-rose-400 underline transition"
-          title="Desfazer e marcar como Pendente"
+          {/* Ações Rápidas no Topo */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportarCSV}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              Exportar CSV
+            </button>
+
+            {user?.role === 'admin' && (
+              <>
+                <button
+                  onClick={() => setModalContratoAberto(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-slate-500" />
+                  Editar
+                </button>
+
+                <button
+                  onClick={handleExcluirContrato}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  title="Excluir Contrato"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  Excluir
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Título e Metadados Imediatos */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${currentAreaStyle}`}>
+                {contrato.area}
+              </span>
+              <StatusBadge status={contrato.status} />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              {contrato.nome_projeto}
+            </h1>
+            <p className="text-slate-500 text-xs mt-0.5">
+              Cliente: <strong className="text-slate-800 font-semibold">{contrato.cliente}</strong> &bull; Executor: {contrato.empresa}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ======================================================== */}
+      {/* 🏛️ GRID CORPORATIVO 70 / 30 */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* ====================================================== */}
+        {/* COLUNA ESQUERDA (70% - Operação, Fases, Tarefas, Histórico) */}
+        {/* ====================================================== */}
+        <div className="lg:col-span-8 space-y-5">
+          
+          {/* BARRA DE NAVEGAÇÃO DE ABAS */}
+          <div className="flex border-b border-slate-200 gap-6">
+            <button
+              onClick={() => setAbaAtiva('cronograma')}
+              className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative cursor-pointer flex items-center gap-2 ${
+                abaAtiva === 'cronograma'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              Cronograma Operacional
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                {totalEtapasCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setAbaAtiva('historico')}
+              className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative cursor-pointer flex items-center gap-2 ${
+                abaAtiva === 'historico'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <History className="w-4 h-4" />
+              Histórico & Auditoria
+              {contrato.historicos && contrato.historicos.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                  {contrato.historicos.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* ABA 1: CRONOGRAMA OPERACIONAL */}
+          {abaAtiva === 'cronograma' && (
+            <div className="space-y-4">
+              
+              {/* Barra de Ação de Fases */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-500">
+                  Fases do Projeto e Linha de Produção
+                </span>
+
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={abrirModalCriarFase}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Adicionar Fase
+                  </button>
+                )}
+              </div>
+
+              {/* LISTA DE FASES COM TAREFAS VISÍVEIS (LAYOUT MILESTONE) */}
+              {contrato.fases && contrato.fases.length > 0 ? (
+                <div className="space-y-4">
+                  {contrato.fases
+                    .sort((a, b) => a.ordem - b.ordem)
+                    .map((fase) => {
+                      const etapasDaFase = fase.etapas || [];
+                      const totalEtapas = etapasDaFase.length;
+                      const concluidas = etapasDaFase.filter(e => (e.progresso || 0) >= 1.0).length;
+                      const progressoFase = totalEtapas > 0 
+                        ? Math.round((etapasDaFase.reduce((acc, e) => acc + (e.progresso || 0), 0) / totalEtapas) * 100) 
+                        : 0;
+
+                      const isExpanded = fasesExpandidas[fase.id] !== false; // Padrão aberta!
+
+                      return (
+                        <div key={fase.id} className="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                          
+                          {/* Cabeçalho da Fase */}
+                          <div 
+                            onClick={() => toggleFase(fase.id)}
+                            className="p-4 bg-slate-50/70 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-slate-100/60 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="text-slate-400">
+                                {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </span>
+                              
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase bg-primary text-white shrink-0">
+                                Fase {fase.ordem}
+                              </span>
+
+                              <div className="flex items-center gap-2 min-w-0">
+                                <h3 className="text-sm font-bold text-slate-900 truncate">{fase.nome_fase}</h3>
+                                <span className="text-xs text-slate-400 shrink-0 font-medium">
+                                  ({concluidas}/{totalEtapas} concluídas)
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {/* Progresso da Fase + Ações */}
+                            <div className="flex items-center gap-3 self-end sm:self-auto" onClick={(e) => e.stopPropagation()}>
+                              {/* Mini Barra de Progresso da Fase */}
+                              <div className="hidden sm:flex items-center gap-2 w-28">
+                                <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-300 ${progressoFase === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                    style={{ width: `${progressoFase}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-[11px] font-mono font-semibold text-slate-500 w-7 text-right">
+                                  {progressoFase}%
+                                </span>
+                              </div>
+
+                              {user?.role === 'admin' && (
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    onClick={() => abrirModalCriarEtapa(fase.id)}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-md text-xs font-semibold shadow-2xs transition cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3 text-primary" />
+                                    Nova Etapa
+                                  </button>
+                                  <button
+                                    onClick={() => abrirModalEditarFase(fase)}
+                                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white rounded-md transition cursor-pointer"
+                                    title="Editar Fase"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleExcluirFase(fase.id, fase.nome_fase)}
+                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition cursor-pointer"
+                                    title="Remover Fase"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* LISTA DE TAREFAS (EXPANDIDA DE FORMA ELEGANTE) */}
+                          {isExpanded && (
+                            <div className="p-3 sm:p-4 space-y-2.5 bg-white">
+                              {etapasDaFase.length > 0 ? (
+                                etapasDaFase.map((etapa) => {
+                                  const progressoCem = Math.round((etapa.progresso || 0) * 100);
+                                  const isDone = progressoCem === 100;
+
+                                  return (
+                                    <div 
+                                      key={etapa.id} 
+                                      className={`p-3.5 rounded-lg border transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                                        isDone 
+                                          ? 'bg-slate-50/50 border-slate-200/60' 
+                                          : 'bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
+                                      }`}
+                                    >
+                                      {/* Checkbox de Status Rápido + Nome da Tarefa */}
+                                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                                        <button
+                                          onClick={() => handleProgressoSlider(etapa, isDone ? 0 : 1.0)}
+                                          title={isDone ? "Desfazer (marcar como pendente)" : "Marcar como concluída"}
+                                          className={`mt-0.5 shrink-0 transition-colors cursor-pointer ${
+                                            isDone ? 'text-emerald-600 hover:text-emerald-700' : 'text-slate-300 hover:text-slate-500'
+                                          }`}
+                                        >
+                                          {isDone ? (
+                                            <CheckCircle2 className="w-5 h-5 fill-emerald-50" />
+                                          ) : (
+                                            <Circle className="w-5 h-5" />
+                                          )}
+                                        </button>
+
+                                        <div className="space-y-1 min-w-0 flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <h4 className={`text-xs font-semibold truncate ${isDone ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                                              {etapa.nome_tarefa}
+                                            </h4>
+                                            {isDone && (
+                                              <span className="inline-flex px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                                Concluído
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          {etapa.observacoes && (
+                                            <p className="text-[11px] text-slate-500 line-clamp-1">
+                                              {etapa.observacoes}
+                                            </p>
+                                          )}
+
+                                          {/* Metadados da Tarefa */}
+                                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 pt-0.5">
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                              <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[8px] uppercase">
+                                                {obterIniciais(etapa.responsavel)}
+                                              </div>
+                                              <span className="text-slate-700">{etapa.responsavel}</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1 font-mono text-[11px] text-slate-500">
+                                              <Calendar className="w-3 h-3 text-slate-400" />
+                                              <span>{formatarData(etapa.data_inicio)} &rarr; {formatarData(etapa.data_termino)}</span>
+                                            </div>
+
+                                            <span className="text-[11px] text-slate-400">
+                                              ({etapa.dias_previstos} dias)
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      {/* Ações da Tarefa */}
+                                      {user?.role === 'admin' && (
+                                        <div className="flex items-center gap-1 self-end md:self-auto pl-2 border-t md:border-t-0 md:border-l border-slate-100 pt-2 md:pt-0">
+                                          <button
+                                            onClick={() => abrirModalEditarEtapa(etapa)}
+                                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition cursor-pointer"
+                                            title="Editar Etapa"
+                                          >
+                                            <Edit3 className="w-3.5 h-3.5" />
+                                          </button>
+                                          <button
+                                            onClick={() => handleExcluirEtapa(etapa.id, etapa.nome_tarefa)}
+                                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition cursor-pointer"
+                                            title="Remover Etapa"
+                                          >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                          </button>
+                                        </div>
+                                      )}
+
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div className="py-6 border border-dashed border-slate-200 rounded-lg flex items-center justify-center text-xs text-slate-400 italic">
+                                  Nenhuma etapa cadastrada nesta fase. Clique em "+ Nova Etapa".
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })}
+                </div>
+              ) : (
+                <div className="py-12 bg-white border border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <FolderOpen className="w-8 h-8 text-slate-300" />
+                  <p className="text-xs font-medium text-slate-500">Este contrato ainda não possui fases cadastradas.</p>
+                  {user?.role === 'admin' && (
+                    <button 
+                      onClick={abrirModalCriarFase} 
+                      className="mt-2 px-3.5 py-1.5 bg-primary text-white rounded-lg text-xs font-semibold hover:bg-primary-hover transition cursor-pointer"
+                    >
+                      Cadastrar Primeira Fase
+                    </button>
+                  )}
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* ABA 2: HISTÓRICO & AUDITORIA */}
+          {abaAtiva === 'historico' && (
+            <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-2xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-sm font-bold text-slate-900">
+                  Trilha de Auditoria e Alterações
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Registro cronológico de edições e atualizações no contrato
+                </p>
+              </div>
+
+              {contrato.historicos && contrato.historicos.length > 0 ? (
+                <div className="space-y-4 pl-4 border-l-2 border-slate-200 ml-2 pt-2">
+                  {contrato.historicos.map((hist) => (
+                    <div key={hist.id} className="relative space-y-1">
+                      <span className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full bg-primary border-2 border-white"></span>
+                      
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-semibold text-slate-900">{hist.campo_alterado}</span>
+                        <span className="text-slate-400">&bull;</span>
+                        <span className="text-slate-500 font-mono text-[11px]">{formatarDataHora(hist.alterado_em)}</span>
+                      </div>
+
+                      <div className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+                        {hist.valor_anterior && (
+                          <span className="text-slate-400 line-through mr-2">{hist.valor_anterior}</span>
+                        )}
+                        <span className="font-medium text-slate-800">{hist.valor_novo}</span>
+                      </div>
+
+                      <span className="text-[10px] text-slate-400 block">
+                        Registrado por: <strong className="text-slate-600 font-medium">{hist.alterado_por}</strong>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-10 text-center text-slate-400 text-xs">
+                  Nenhuma alteração registrada até o momento.
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+
+        {/* ====================================================== */}
+        {/* COLUNA DIREITA (30% - Painel Executivo / Ficha Técnica) */}
+        {/* ====================================================== */}
+        <div className="lg:col-span-4 space-y-5 sticky top-24">
+          
+          {/* CARD 1: SAÚDE DO CONTRATO & PROGRESSO */}
+          <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-900">Progresso Geral</span>
+              <span className="text-xs font-mono font-bold text-primary">{progressoGeral}%</span>
+            </div>
+
+            {/* Barra de Progresso Fina */}
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+              <div 
+                className={`h-full rounded-full transition-all duration-500 ${
+                  contrato.status === 'atrasado'
+                    ? 'bg-rose-500'
+                    : contrato.status === 'atencao'
+                      ? 'bg-amber-500'
+                      : 'bg-emerald-500'
+                }`}
+                style={{ width: `${progressoGeral}%` }}
+              ></div>
+            </div>
+
+            <div className="flex justify-between items-center text-xs text-slate-500 pt-1">
+              <span>Etapas finalizadas:</span>
+              <strong className="text-slate-800 font-mono">{etapasConcluidasCount} de {totalEtapasCount}</strong>
+            </div>
+
+            {/* Box de Prazos Consolidado */}
+            <div className="bg-slate-50 border border-slate-200/70 rounded-lg p-3.5 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 flex items-center gap-1.5 font-medium">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" /> Prazo Final
+                </span>
+                <span className="font-bold text-slate-900 font-mono">
+                  {formatarData(contrato.data_entrega_final)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/50">
+                <span className="text-slate-500">Situação:</span>
+                <div>
+                  {contrato.status === 'concluido' ? (
+                    <span className="text-emerald-700 font-semibold font-mono">Finalizado</span>
+                  ) : diasRestantes !== null ? (
+                    diasRestantes < 0 ? (
+                      <span className="text-rose-700 font-semibold font-mono">Atrasado ({Math.abs(diasRestantes)}d)</span>
+                    ) : diasRestantes <= 7 ? (
+                      <span className="text-amber-700 font-semibold font-mono">Faltam {diasRestantes} dias</span>
+                    ) : (
+                      <span className="text-slate-700 font-medium font-mono">Faltam {diasRestantes} dias</span>
+                    )
+                  ) : (
+                    <span className="text-slate-400">-</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CARD 2: FICHA TÉCNICA DO PROJETO */}
+          <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs space-y-4">
+            <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+              <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                Ficha Técnica
+              </h3>
+              <span className="text-[10px] text-slate-400">Dados do Contrato</span>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              
+              {/* Diretor do Projeto */}
+              <div>
+                <span className="text-slate-400 block text-[11px] font-medium">Diretor Responsável (RT)</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[9px] uppercase">
+                    {obterIniciais(contrato.diretor_projeto)}
+                  </div>
+                  <span className="font-semibold text-slate-800">{contrato.diretor_projeto}</span>
+                </div>
+              </div>
+
+              {/* Direitos Minerários / ANM */}
+              <div>
+                <span className="text-slate-400 block text-[11px] font-medium">Processo ANM / Direitos</span>
+                <span className="font-mono font-semibold text-slate-800 mt-0.5 block">
+                  {contrato.direitos_minerarios || 'Não informado'}
+                </span>
+              </div>
+
+              {/* Dias de Campo */}
+              <div>
+                <span className="text-slate-400 block text-[11px] font-medium">Intensidade de Campo</span>
+                <span className="font-semibold text-slate-800 mt-0.5 block">
+                  {contrato.dias_campo_total} dias de campo previstos
+                </span>
+              </div>
+
+              {/* Datas de Período */}
+              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Início</span>
+                  <span className="font-mono text-slate-700 font-medium">{formatarData(contrato.data_inicio)}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Entrega Prevista</span>
+                  <span className="font-mono text-slate-700 font-medium">{formatarData(contrato.data_entrega_final)}</span>
+                </div>
+              </div>
+
+              {/* Observações / Escopo */}
+              {contrato.observacoes && (
+                <div className="pt-2 border-t border-slate-100">
+                  <span className="text-slate-400 block text-[11px] font-medium mb-1">Escopo Técnico</span>
+                  <p className="bg-slate-50 p-3 rounded-lg border border-slate-200/60 text-slate-600 text-xs leading-relaxed">
+                    {contrato.observacoes}
+                  </p>
+                </div>
+              )}
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* ======================================================== */}
+      {/* 🛡️ MODAIS CORPORATIVOS (EDIÇÃO E INSERÇÃO) */}
+      {/* ======================================================== */}
+
+      {/* 1. MODAL EDITAR CONTRATO */}
+      {modalContratoAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-2xl overflow-hidden shadow-xl">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-primary" />
+                Editar Informações Gerais do Contrato
+              </h3>
+              <button 
+                onClick={() => setModalContratoAberto(false)}
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarContrato} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Nome do Projeto *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editContratoForm.nome_projeto || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, nome_projeto: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Cliente *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editContratoForm.cliente || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, cliente: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Empresa *</label>
+                  <input 
+                    type="text" 
+                    required
+                    value={editContratoForm.empresa || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, empresa: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Diretor do Projeto *</label>
+                  <select 
+                    required
+                    value={editContratoForm.diretor_projeto || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, diretor_projeto: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
+                  >
+                    {responsaveis.map(r => (
+                      <option key={r.id} value={r.nome}>{r.nome} ({r.cargo})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Área *</label>
+                  <select 
+                    required
+                    value={editContratoForm.area || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, area: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer"
+                  >
+                    <option value="Topografia">Topografia</option>
+                    <option value="Geologia">Geologia</option>
+                    <option value="Meio Ambiente">Meio Ambiente</option>
+                    <option value="Outra">Outra</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Direitos Minerários</label>
+                  <input 
+                    type="text" 
+                    value={editContratoForm.direitos_minerarios || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, direitos_minerarios: e.target.value})}
+                    placeholder="ex: 831.199/2025"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Dias de Campo Previstos</label>
+                  <input 
+                    type="number" 
+                    value={editContratoForm.dias_campo_total || 0}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, dias_campo_total: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Data Início</label>
+                  <input 
+                    type="date" 
+                    value={editContratoForm.data_inicio ? editContratoForm.data_inicio.split('T')[0] : ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, data_inicio: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Data Entrega Final</label>
+                  <input 
+                    type="date" 
+                    value={editContratoForm.data_entrega_final ? editContratoForm.data_entrega_final.split('T')[0] : ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, data_entrega_final: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Observações Técnicas</label>
+                  <textarea 
+                    value={editContratoForm.observacoes || ''}
+                    onChange={(e) => setEditContratoForm({...editContratoForm, observacoes: e.target.value})}
+                    rows="3"
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => setModalContratoAberto(false)}
+                  className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Salvar Alterações
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL ADICIONAR / EDITAR FASE */}
+      {modalFaseAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md overflow-hidden shadow-xl">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                {faseForm.id ? <Edit3 className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
+                {faseForm.id ? 'Editar Fase do Cronograma' : 'Nova Fase do Cronograma'}
+              </h3>
+              <button 
+                onClick={() => setModalFaseAberto(false)}
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarFase} className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Nome da Fase *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Ex: Fase 1 - Planejamento e Mobilização"
+                  value={faseForm.nome_fase}
+                  onChange={(e) => setFaseForm({...faseForm, nome_fase: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Ordem / Posição</label>
+                <input 
+                  type="number" 
+                  value={faseForm.ordem}
+                  onChange={(e) => setFaseForm({...faseForm, ordem: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => setModalFaseAberto(false)}
+                  className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  {faseForm.id ? 'Salvar Alterações' : 'Criar Fase'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 3. MODAL ADICIONAR / EDITAR ETAPA */}
+      {modalEtapaAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
+          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-xl overflow-hidden shadow-xl">
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                {etapaForm.id ? <Edit3 className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
+                {etapaForm.id ? 'Editar Etapa / Tarefa' : 'Adicionar Etapa / Tarefa'}
+              </h3>
+              <button 
+                onClick={() => setModalEtapaAberto(false)}
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarEtapa} className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Nome da Tarefa *</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Ex: Levantamento GNSS e Coleta de Dados"
+                  value={etapaForm.nome_tarefa}
+                  onChange={(e) => setEtapaForm({...etapaForm, nome_tarefa: e.target.value})}
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Responsável *</label>
+                  <select 
+                    required
+                    value={etapaForm.responsavel}
+                    onChange={(e) => setEtapaForm({...etapaForm, responsavel: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent cursor-pointer"
+                  >
+                    {responsaveis.map(r => (
+                      <option key={r.id} value={r.nome}>{r.nome} ({r.cargo})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Status</label>
+                  <button
+                    type="button"
+                    onClick={() => setEtapaForm({...etapaForm, progresso: etapaForm.progresso === 100 ? 0 : 100})}
+                    className={`mt-1 px-3 py-2 border rounded-lg text-xs font-semibold transition flex items-center gap-1.5 w-full justify-center cursor-pointer ${
+                      etapaForm.progresso === 100 
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700' 
+                        : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {etapaForm.progresso === 100 ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" /> Concluído (Alternar)
+                      </>
+                    ) : (
+                      'Pendente (Marcar Concluído)'
+                    )}
+                  </button>
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Data Início</label>
+                  <input 
+                    type="date" 
+                    value={etapaForm.data_inicio}
+                    onChange={(e) => setEtapaForm({...etapaForm, data_inicio: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Data Término</label>
+                  <input 
+                    type="date" 
+                    value={etapaForm.data_termino}
+                    onChange={(e) => setEtapaForm({...etapaForm, data_termino: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-700 block mb-1">Dias Previstos</label>
+                  <input 
+                    type="number" 
+                    value={etapaForm.dias_previstos}
+                    onChange={(e) => setEtapaForm({...etapaForm, dias_previstos: e.target.value})}
+                    className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">Observações da Tarefa</label>
+                <textarea 
+                  value={etapaForm.observacoes}
+                  onChange={(e) => setEtapaForm({...etapaForm, observacoes: e.target.value})}
+                  rows="2"
+                  placeholder="Instruções técnicas, equipamentos ou escopo desta tarefa..."
+                  className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:border-accent"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => setModalEtapaAberto(false)}
+                  className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 bg-primary hover:bg-primary-hover text-white font-semibold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  {etapaForm.id ? 'Salvar Alterações' : 'Criar Tarefa'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRMAÇÃO DE EXCLUSÃO */}
+      {confirmacao && (
+        <ConfirmDialog
+          title={confirmacao.titulo}
+          confirmLabel={confirmacao.rotulo}
+          danger
+          loading={confirmando}
+          onConfirm={executarConfirmacao}
+          onCancel={() => setConfirmacao(null)}
         >
-          Desfazer
-        </button>
+          <p>{confirmacao.mensagem}</p>
+        </ConfirmDialog>
       )}
-    </div>
-  ) : (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-bold text-theme-weak">Pendente</span>
-      {user?.role === 'admin' && (
-        <button
-          onClick={() => handleConcluirEtapa(etapa)}
-          className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 rounded-none text-[11px] font-bold transition flex items-center gap-1"
-          title="Marcar tarefa como Concluída"
-        >
-          <Check className="w-3.5 h-3.5" />
-          Concluir
-        </button>
-      )}
-    </div>
-  )}
-  </div>
 
-  {/* Ações */}
-  {user?.role === 'admin' && (
-  <div className="flex items-center gap-1 pl-3 border-l border-aldebaran-border">
-  <button
-  onClick={() => abrirModalEditarEtapa(etapa)}
-  className="p-1 hover:bg-aldebaran-gray text-theme-weak hover:text-theme-normal rounded-none transition"
-  title="Editar"
-  >
-  <Edit3 className="w-4 h-4" />
-  </button>
-  <button
-  onClick={() => handleExcluirEtapa(etapa.id, etapa.nome_tarefa)}
-  className="p-1 hover:bg-transparent text-theme-weak hover:text-rose-500 rounded-none transition"
-  title="Remover"
-  >
-  <Trash2 className="w-4 h-4" />
-  </button>
-  </div>
-  )}
-
-  </div>
-  </div>
+    </div>
   );
-  })
-  ) : (
-  <div className="py-4 border border-dashed border-aldebaran-border rounded-none flex items-center justify-center text-xs text-theme-weak italic">
-  Sem etapas adicionadas a esta fase. Clique em "+ Adicionar Etapa".
-  </div>
-  )}
-  </div>
-  )} {/* fim condicional fasesExpandidas */}
-  </div>
-  );
-  })}
-  </div>
-  ) : (
-    <div className="py-8 border border-dashed border-aldebaran-border rounded-none flex flex-col items-center justify-center text-theme-weak gap-2">
-      <p className="text-sm font-medium">Este contrato não possui nenhuma fase cadastrada.</p>
-      {user?.role === 'admin' && (
-      <button onClick={abrirModalCriarFase} className="px-3 py-1.5 bg-aldebaran-gray text-theme-strong rounded-none hover:bg-aldebaran-gray text-xs font-semibold">Criar Primeira Fase</button>
-      )}
-    </div>
-  )}
-
-  {/* BOTÃO ADICIONAR FASE NO FINAL */}
- {contrato.fases && contrato.fases.length > 0 && user?.role === 'admin' && (
- <button
- onClick={abrirModalCriarFase}
- className="w-full py-3 bg-aldebaran-dark hover:bg-aldebaran-gray border border-dashed border-aldebaran-border hover:border-aldebaran-border rounded-none text-xs font-bold text-theme-weak hover:text-theme-normal transition flex items-center justify-center gap-2"
- >
- <Plus className="w-4 h-4" />
- Adicionar Nova Fase ao Cronograma
- </button>
- )}
- </div>
-
- {/* ======================================================== */}
- {/* 🛡️ MODAIS DE INTERAÇÃO */}
-
- {/* 1. MODAL EDITAR CONTRATO */}
- {modalContratoAberto && (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
- <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none w-full max-w-2xl overflow-hidden shadow-md">
- <div className="p-5 border-b border-aldebaran-border flex justify-between items-center bg-aldebaran-dark/40">
- <h3 className="text-base font-bold text-theme-strong flex items-center gap-2">
- <Edit3 className="w-5 h-5 text-aldebaran-goldDark" />
- Editar Informações Gerais do Contrato
- </h3>
- <button 
- onClick={() => setModalContratoAberto(false)}
- className="text-theme-weak hover:text-theme-strong transition"
- >
- <X className="w-5 h-5" />
- </button>
- </div>
-
- <form onSubmit={handleSalvarContrato} className="p-5 space-y-4">
- <div className="grid grid-cols-2 gap-4">
- <div className="col-span-2">
- <label className="text-xs font-semibold text-theme-weak block mb-1">Nome do Projeto *</label>
- <input 
- type="text" 
- required
- value={editContratoForm.nome_projeto || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, nome_projeto: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Cliente *</label>
- <input 
- type="text" 
- required
- value={editContratoForm.cliente || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, cliente: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Empresa *</label>
- <input 
- type="text" 
- required
- value={editContratoForm.empresa || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, empresa: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Diretor do Projeto *</label>
- <select 
- required
- value={editContratoForm.diretor_projeto || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, diretor_projeto: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- >
- {responsaveis.map(r => (
- <option key={r.id} value={r.nome} className="bg-aldebaran-dark">{r.nome} ({r.cargo})</option>
- ))}
- </select>
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Área *</label>
- <select 
- required
- value={editContratoForm.area || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, area: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- >
- <option value="Topografia" className="bg-aldebaran-dark">Topografia</option>
- <option value="Geologia" className="bg-aldebaran-dark">Geologia</option>
- <option value="Meio Ambiente" className="bg-aldebaran-dark">Meio Ambiente</option>
- <option value="Outra" className="bg-aldebaran-dark">Outra</option>
- </select>
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Direitos Minerários</label>
- <input 
- type="text" 
- value={editContratoForm.direitos_minerarios || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, direitos_minerarios: e.target.value})}
- placeholder="ex: 831.199/2025"
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold font-mono"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Dias de Campo Total</label>
- <input 
- type="number" 
- value={editContratoForm.dias_campo_total || 0}
- onChange={(e) => setEditContratoForm({...editContratoForm, dias_campo_total: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Data Início</label>
- <input 
- type="date" 
- value={editContratoForm.data_inicio ? editContratoForm.data_inicio.split('T')[0] : ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, data_inicio: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Data Entrega Final</label>
- <input 
- type="date" 
- value={editContratoForm.data_entrega_final ? editContratoForm.data_entrega_final.split('T')[0] : ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, data_entrega_final: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div className="col-span-2">
- <label className="text-xs font-semibold text-theme-weak block mb-1">Observações</label>
- <textarea 
- value={editContratoForm.observacoes || ''}
- onChange={(e) => setEditContratoForm({...editContratoForm, observacoes: e.target.value})}
- rows="3"
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- ></textarea>
- </div>
- </div>
-
-  <div className="flex justify-end gap-3 pt-3 border-t border-aldebaran-border">
-  <button 
-  type="button" 
-  onClick={() => setModalContratoAberto(false)}
-  className="px-4 py-2 bg-transparent border border-aldebaran-border hover:bg-aldebaran-dark text-theme-normal rounded-none text-xs font-bold transition"
-  >
-  Cancelar
-  </button>
-  <button 
-  type="submit" 
-  className="px-4 py-2 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-xs transition flex items-center gap-1.5"
-  >
-  <Save className="w-3.5 h-3.5" />
-  Salvar Alterações
-  </button>
-  </div>
- </form>
- </div>
- </div>
- )}
-
- {/* 2. MODAL ADICIONAR / EDITAR FASE */}
- {modalFaseAberto && (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
- <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none w-full max-w-md overflow-hidden shadow-md">
- <div className="p-5 border-b border-aldebaran-border flex justify-between items-center bg-aldebaran-dark/40">
- <h3 className="text-base font-bold text-theme-strong flex items-center gap-2">
- {faseForm.id ? <Edit3 className="w-5 h-5 text-aldebaran-goldDark" /> : <Plus className="w-5 h-5 text-aldebaran-goldDark" />}
- {faseForm.id ? 'Editar Fase do Cronograma' : 'Criar Nova Fase do Cronograma'}
- </h3>
- <button 
- onClick={() => setModalFaseAberto(false)}
- className="text-theme-weak hover:text-theme-strong transition"
- >
- <X className="w-5 h-5" />
- </button>
- </div>
-
- <form onSubmit={handleSalvarFase} className="p-5 space-y-4">
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Nome da Fase *</label>
- <input 
- type="text" 
- required
- placeholder="ex: Fase 4 - Licenciamento Ambiental"
- value={faseForm.nome_fase}
- onChange={(e) => setFaseForm({...faseForm, nome_fase: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Ordem / Posição</label>
- <input 
- type="number" 
- value={faseForm.ordem}
- onChange={(e) => setFaseForm({...faseForm, ordem: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
-  <div className="flex justify-end gap-3 pt-3 border-t border-aldebaran-border">
-  <button 
-  type="button" 
-  onClick={() => setModalFaseAberto(false)}
-  className="px-4 py-2 bg-transparent border border-aldebaran-border hover:bg-aldebaran-dark text-theme-normal rounded-none text-xs font-bold transition"
-  >
-  Cancelar
-  </button>
-  <button 
-  type="submit" 
-  className="px-4 py-2 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-xs transition flex items-center gap-1.5"
-  >
-  {faseForm.id ? 'Salvar Alterações' : 'Criar Fase'}
-  </button>
-  </div>
- </form>
- </div>
- </div>
- )}
-
- {/* 3. MODAL ADICIONAR / EDITAR ETAPA */}
- {modalEtapaAberto && (
- <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
- <div className="bg-aldebaran-gray border border-aldebaran-border rounded-none w-full max-w-xl overflow-hidden shadow-md">
- <div className="p-5 border-b border-aldebaran-border flex justify-between items-center bg-aldebaran-dark/40">
- <h3 className="text-base font-bold text-theme-strong flex items-center gap-2">
- {etapaForm.id ? <Edit3 className="w-5 h-5 text-aldebaran-goldDark" /> : <Plus className="w-5 h-5 text-aldebaran-goldDark" />}
- {etapaForm.id ? 'Editar Etapa / Tarefa' : 'Adicionar Nova Etapa / Tarefa'}
- </h3>
- <button 
- onClick={() => setModalEtapaAberto(false)}
- className="text-theme-weak hover:text-theme-strong transition"
- >
- <X className="w-5 h-5" />
- </button>
- </div>
-
- <form onSubmit={handleSalvarEtapa} className="p-5 space-y-4">
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Nome da Tarefa *</label>
- <input 
- type="text" 
- required
- placeholder="ex: Coleta de amostras de solo"
- value={etapaForm.nome_tarefa}
- onChange={(e) => setEtapaForm({...etapaForm, nome_tarefa: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div className="grid grid-cols-2 gap-4">
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Responsável *</label>
- <select 
- required
- value={etapaForm.responsavel}
- onChange={(e) => setEtapaForm({...etapaForm, responsavel: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- >
- {responsaveis.map(r => (
- <option key={r.id} value={r.nome} className="bg-aldebaran-dark">{r.nome} ({r.cargo})</option>
- ))}
- </select>
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Status da Tarefa</label>
- <div className="flex items-center gap-3 mt-2">
-   <button
-     type="button"
-     onClick={() => setEtapaForm({...etapaForm, progresso: etapaForm.progresso === 100 ? 0 : 100})}
-     className={`px-4 py-2 border rounded-none text-xs font-bold transition flex items-center gap-2 w-full justify-center ${
-       etapaForm.progresso === 100 
-         ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500 hover:bg-emerald-500/20' 
-         : 'bg-transparent border-aldebaran-border text-theme-weak hover:text-theme-normal hover:border-theme-weak'
-     }`}
-   >
-     {etapaForm.progresso === 100 ? (
-       <>
-         <Check className="w-4 h-4" /> Concluído (Clique para Desfazer)
-       </>
-     ) : (
-       'Pendente (Clique para Concluir)'
-     )}
-   </button>
- </div>
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Data Início</label>
- <input 
- type="date" 
- value={etapaForm.data_inicio}
- onChange={(e) => setEtapaForm({...etapaForm, data_inicio: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Data Término</label>
- <input 
- type="date" 
- value={etapaForm.data_termino}
- onChange={(e) => setEtapaForm({...etapaForm, data_termino: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Dias Previstos</label>
- <input 
- type="number" 
- value={etapaForm.dias_previstos}
- onChange={(e) => setEtapaForm({...etapaForm, dias_previstos: e.target.value})}
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- />
- </div>
- </div>
-
- <div>
- <label className="text-xs font-semibold text-theme-weak block mb-1">Observações da Tarefa</label>
- <textarea 
- value={etapaForm.observacoes}
- onChange={(e) => setEtapaForm({...etapaForm, observacoes: e.target.value})}
- rows="2"
- placeholder="Instruções ou andamento específico da tarefa..."
- className="w-full p-2.5 bg-aldebaran-dark border border-aldebaran-border rounded-none text-sm text-theme-strong focus:outline-none focus:border-aldebaran-gold"
- ></textarea>
- </div>
-
-  <div className="flex justify-end gap-3 pt-3 border-t border-aldebaran-border">
-  <button 
-  type="button" 
-  onClick={() => setModalEtapaAberto(false)}
-  className="px-4 py-2 bg-transparent border border-aldebaran-border hover:bg-aldebaran-dark text-theme-normal rounded-none text-xs font-bold transition"
-  >
-  Cancelar
-  </button>
-  <button 
-  type="submit" 
-  className="px-4 py-2 bg-aldebaran-gold hover:opacity-90 text-white font-bold rounded-none text-xs transition flex items-center gap-1.5"
-  >
-  {etapaForm.id ? 'Salvar Alterações' : 'Criar Tarefa'}
-  </button>
-  </div>
- </form>
- </div>
- </div>
- )}
-
- </div>
- );
 };
 
 export default DetalheContrato;

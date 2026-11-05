@@ -3,37 +3,126 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Paleta ProjectSight — valores em canais RGB ("R G B") para suportar opacidade no Tailwind.
+   * Para mudar a identidade visual, edite apenas este bloco.
+   */
   :root {
-    --bg-base: #F8F9FA;
-    --bg-base-darker: #F3F4F6;
+    /* Superficies */
+    --background: 248 250 252;        /* #F8FAFC  fundo da aplicacao */
+    --foreground: 15 23 42;           /* #0F172A  texto principal */
+    --card: 255 255 255;              /* #FFFFFF  cards, tabelas, modais */
+    --muted: 241 245 249;             /* #F1F5F9  cabecalhos de tabela, inputs */
+    --muted-foreground: 71 85 105;    /* #475569  texto secundario */
+    --border: 226 232 240;            /* #E2E8F0 */
+
+    /* Marca */
+    --primary: 15 62 84;              /* #0F3E54  azul-petroleo */
+    --primary-hover: 10 45 62;        /* #0A2D3E */
+    --primary-light: 235 243 247;     /* #EBF3F7 */
+    --primary-foreground: 255 255 255;
+
+    /* Acao / foco / links */
+    --accent: 2 132 199;              /* #0284C7 */
+    --accent-hover: 3 105 161;        /* #0369A1 */
+    --accent-light: 224 242 254;      /* #E0F2FE */
+    --ring: 2 132 199;
+
+    --destructive: 220 38 38;         /* #DC2626 */
+    --destructive-light: 254 226 226; /* #FEE2E2 */
+
+    /* Status de prazo — somente para prazo/progresso */
+    --status-success: 22 163 74;      /* #16A34A */
+    --status-warning: 217 119 6;      /* #D97706 */
+    --status-danger: 220 38 38;       /* #DC2626 */
+    --status-done: 100 116 139;       /* #64748B */
+
+    /* Legado */
+    --brand-primary: #0F3E54;
+    --brand-primary-hover: #0A2D3E;
+    --brand-primary-light: #EBF3F7;
+    --brand-accent: #0284C7;
+    --brand-accent-hover: #0369A1;
+    --brand-accent-light: #E0F2FE;
+
+    --bg-app: #F8FAFC;
     --bg-surface: #FFFFFF;
-    --border-subtle: #E5E7EB;
-    --text-strong: #0F172A;
-    --text-normal: #374151;
-    --text-weak: #6B7280;
-    --accent-orange: #0D9488;
-    --accent-gold: #1E3A8A;
+    --bg-subtle: #F1F5F9;
+    --bg-muted: #E2E8F0;
+
+    --border-subtle: #E2E8F0;
+    --border-hover: #CBD5E1;
+    --border-focus: #0284C7;
+
+    --text-primary: #0F172A;
+    --text-secondary: #475569;
+    --text-muted: #94A3B8;
+
+    --status-success-bg: #DCFCE7;
+    --status-success-text: #166534;
+    --status-warning-bg: #FEF3C7;
+    --status-warning-text: #92400E;
+    --status-danger-bg: #FEE2E2;
+    --status-danger-text: #991B1B;
+    --status-done-bg: #F1F5F9;
+    --status-done-text: #334155;
   }
+}
+
+/* Regras explicitas de utilitarios de token para funcionar via HMR imediato mesmo sem reiniciar o Vite */
+@layer utilities {
+  .bg-background { background-color: rgb(var(--background)); }
+  .bg-card { background-color: rgb(var(--card)); }
+  .bg-muted { background-color: rgb(var(--muted)); }
+  .bg-primary, .bg-brand-primary { background-color: rgb(var(--primary)); }
+  .hover\:bg-primary-hover:hover, .hover\:bg-brand-primary-hover:hover { background-color: rgb(var(--primary-hover)); }
+  .active\:bg-primary-hover:active { background-color: rgb(var(--primary-hover)); }
+  .bg-primary-light, .bg-brand-primary-light { background-color: rgb(var(--primary-light)); }
+  .bg-accent, .bg-brand-accent { background-color: rgb(var(--accent)); }
+  .hover\:bg-accent-hover:hover, .hover\:bg-brand-accent-hover:hover { background-color: rgb(var(--accent-hover)); }
+  .bg-accent-light, .bg-brand-accent-light { background-color: rgb(var(--accent-light)); }
+  .bg-status-success { background-color: rgb(var(--status-success)); }
+  .bg-status-warning { background-color: rgb(var(--status-warning)); }
+  .bg-status-danger { background-color: rgb(var(--status-danger)); }
+  .bg-status-done { background-color: rgb(var(--status-done)); }
+
+  .text-foreground { color: rgb(var(--foreground)); }
+  .text-muted-foreground { color: rgb(var(--muted-foreground)); }
+  .text-primary, .text-brand-primary { color: rgb(var(--primary)); }
+  .text-primary-foreground { color: rgb(var(--primary-foreground)); }
+  .text-accent, .text-brand-accent { color: rgb(var(--accent)); }
+  .hover\:text-accent-hover:hover { color: rgb(var(--accent-hover)); }
+  .text-status-success { color: rgb(var(--status-success)); }
+  .text-status-warning { color: rgb(var(--status-warning)); }
+  .text-status-danger { color: rgb(var(--status-danger)); }
+  .text-status-done { color: rgb(var(--status-done)); }
+
+  .border-primary { border-color: rgb(var(--primary)); }
+  .border-accent, .focus\:border-accent:focus, .focus\:border-brand-accent:focus { border-color: rgb(var(--accent)); }
 }
 
 body {
   margin: 0;
-  background-color: var(--bg-base);
-  color: var(--text-normal);
-  
-  font-family: 'Montserrat', system-ui, sans-serif;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Libre Franklin', sans-serif;
+/* Neutraliza o fundo azulado padrao do autofill do Chrome/Edge para manter os inputs limpos */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #0F172A;
+  -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Custom Scrollbar for professional corporate feel */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -42,7 +131,7 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -53,7 +142,7 @@ h1, h2, h3, h4, h5, h6 {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -62,13 +151,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Base Panel utility (replacing glassmorphism with solid corporate panels) */
-.glass-panel, .panel {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.375rem; /* sharper corners for minimalism */
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); /* soft corporate shadow */
+/* Clean corporate panel utility */
+.panel {
+  background: rgb(var(--card));
+  border: 1px solid rgb(var(--border));
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
 }

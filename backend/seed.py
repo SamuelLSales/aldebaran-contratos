@@ -1,13 +1,14 @@
 # backend/seed.py
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Garante que a pasta backend seja visível para o import do Python
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(BASE_DIR)
+sys.path.append(os.path.join(BASE_DIR, "app"))
 
 from database import Base, engine, SessionLocal
-# Importar os modelos explicitamente para que o metadata os conheça ao rodar create_all
 from app.models.contrato import Contrato
 from app.models.fase import Fase
 from app.models.etapa import Etapa
@@ -15,27 +16,34 @@ from app.models.responsavel import Responsavel
 from app.models.historico import HistoricoAlteracao
 from app.models.usuario import Usuario
 from app.models.sessao import Sessao
+from app.services.auth import gerar_hash_senha
 
 def seed_database():
     print("======================================================")
-    print("Inicializando e Semeando o Banco de Dados SQLite...")
+    print("Inicializando e Semeando o Banco de Dados Aldebaran...")
     print("======================================================")
     
     # 1. Cria todas as tabelas no arquivo SQLite se elas não existirem
-    print("Criando tabelas...")
     Base.metadata.create_all(bind=engine)
     
     db = SessionLocal()
     try:
-        # Verificar se já existem dados no banco para evitar duplicidade
-        if db.query(Responsavel).first() is not None:
-            print("O banco de dados já possui dados cadastrados. Pulando seed.")
+        # Trava de segurança para produção: nunca apaga contratos já existentes sem a flag explícita --force
+        forcar_reset = "--force" in sys.argv
+        if not forcar_reset and db.query(Contrato).count() > 0:
+            print("O banco de dados já possui contratos cadastrados. Pulando seed para preservar os dados existentes.")
+            print("(Use 'python seed.py --force' apenas em ambiente de teste caso queira recriar os dados de demonstração).")
             return
 
-        # 1.5 Criar Usuários Iniciais (Admin e Viewer)
-        from app.models.usuario import Usuario
-        from app.services.auth import gerar_hash_senha
-        
+        if forcar_reset:
+            print("Modo --force ativado: limpando contratos anteriores de teste...")
+            db.query(HistoricoAlteracao).delete()
+            db.query(Etapa).delete()
+            db.query(Fase).delete()
+            db.query(Contrato).delete()
+            db.commit()
+
+        # 1.5 Usuários (Admin e Viewer)
         if db.query(Usuario).first() is None:
             print("Semeando Usuários...")
             hash_admin, salt_admin = gerar_hash_senha("admin")
@@ -47,202 +55,205 @@ def seed_database():
             db.add_all([admin, visita])
             db.commit()
 
-        # 2. Cadastrar os Responsáveis Padrão
-        print("Semeando Responsáveis...")
-        robson = Responsavel(nome="Robson Ribeiro", cargo="Diretor", area="Todas")
-        nadia = Responsavel(nome="Nadia", cargo="Coordenadora", area="Administrativo")
-        humberto = Responsavel(nome="Humberto", cargo="Campo", area="Topografia")
-        
-        db.add_all([robson, nadia, humberto])
-        db.commit() # Salva no banco para obter IDs se necessário
-        
-        # 3. Criar Contrato Exemplo (Mapeamento Igaratinga MG)
-        print("Semeando Contrato de Exemplo...")
-        contrato = Contrato(
-            nome_projeto="Mapeamento Igaratinga MG",
-            cliente="Exbel",
+        # 2. Responsáveis Padrão da Aldebaran Consultoria
+        if db.query(Responsavel).count() == 0:
+            print("Semeando Responsáveis Técnicos...")
+            responsaveis_iniciais = [
+                Responsavel(nome="Robson Ribeiro", cargo="Diretor", area="Todas"),
+                Responsavel(nome="Nadia Souza", cargo="Coordenadora", area="Administrativo"),
+                Responsavel(nome="Humberto Silva", cargo="Campo", area="Topografia"),
+                Responsavel(nome="Mariana Lopes", cargo="Geóloga Sênior", area="Geologia"),
+                Responsavel(nome="Carlos Eduardo", cargo="Técnico de Campo", area="Topografia"),
+                Responsavel(nome="Letícia Fontes", cargo="Engenheira Ambiental", area="Meio Ambiente")
+            ]
+            db.add_all(responsaveis_iniciais)
+            db.commit()
+
+        hoje = datetime.utcnow()
+
+        # =====================================================================
+        # CONTRATO 1: Topografia (No Prazo - Em Andamento)
+        # =====================================================================
+        print("Semeando Contrato 1: Mapeamento Igaratinga MG...")
+        c1 = Contrato(
+            nome_projeto="Mapeamento Topográfico e Georreferenciamento Igaratinga MG",
+            cliente="Exbel Mineração S.A.",
             empresa="Aldebaran Consultoria",
             direitos_minerarios="831.199/2025 e 830.067/2025",
             area="Topografia",
             diretor_projeto="Robson Ribeiro",
-            data_inicio=datetime(2026, 2, 20),
-            data_entrega_final=datetime(2026, 3, 21),
+            data_inicio=hoje - timedelta(days=20),
+            data_entrega_final=hoje + timedelta(days=22),
             dias_campo_total=12,
-            status="atrasado", # 2026-03-21 já passou do prazo em relação ao local time (maio de 2026)
-            observacoes="Contrato estratégico de mapeamento topográfico e geológico para licenciamento mineral."
+            status="no_prazo",
+            observacoes="Levantamento planialtimétrico cadastral com GNSS RTK e apoio geodésico para licenciamento mineral."
         )
-        db.add(contrato)
+        db.add(c1)
         db.commit()
 
-        # 4. Criar as Fases do Contrato
-        print("Semeando Fases...")
-        fase1 = Fase(contrato_id=contrato.id, nome_fase="Fase 1 – Planejamento", ordem=1)
-        fase2 = Fase(contrato_id=contrato.id, nome_fase="Fase 2 – Mapeamento de Campo", ordem=2)
-        fase3 = Fase(contrato_id=contrato.id, nome_fase="Fase 3 – Elaboração de Relatório", ordem=3)
-        
-        db.add_all([fase1, fase2, fase3])
+        f1_c1 = Fase(contrato_id=c1.id, nome_fase="Fase 1 – Planejamento e ART", ordem=1)
+        f2_c1 = Fase(contrato_id=c1.id, nome_fase="Fase 2 – Levantamento de Campo GNSS", ordem=2)
+        f3_c1 = Fase(contrato_id=c1.id, nome_fase="Fase 3 – Processamento e Planta Final", ordem=3)
+        db.add_all([f1_c1, f2_c1, f3_c1])
         db.commit()
 
-        # 5. Criar as Etapas de Cada Fase
-        print("Semeando Etapas das Fases...")
-        
-        # Etapas da Fase 1 - Planejamento (100% completas)
-        etapas_fase1 = [
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Escolha de prestador",
-                responsavel="Robson Ribeiro",
-                progresso=1.0,
-                data_inicio=datetime(2026, 2, 20),
-                data_termino=datetime(2026, 2, 22),
-                dias_previstos=2,
-                observacoes="Definido parceiro de topografia terceirizado para apoio local."
-            ),
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Elaboração do termo de ref.",
-                responsavel="Nadia",
-                progresso=1.0,
-                data_inicio=datetime(2026, 2, 22),
-                data_termino=datetime(2026, 2, 24),
-                dias_previstos=2,
-                observacoes="Termo de referência detalhado enviado para aprovação."
-            ),
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Envio de Termo",
-                responsavel="Nadia",
-                progresso=1.0,
-                data_inicio=datetime(2026, 2, 24),
-                data_termino=datetime(2026, 2, 25),
-                dias_previstos=1,
-                observacoes="Envio oficial de documentação ao prestador."
-            ),
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Negociação Comercial",
-                responsavel="Robson Ribeiro",
-                progresso=1.0,
-                data_inicio=datetime(2026, 2, 25),
-                data_termino=datetime(2026, 2, 28),
-                dias_previstos=3,
-                observacoes="Alinhamento e fechamento de valores e prazos adicionais."
-            ),
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Envio de OS ao prestador",
-                responsavel="Nadia",
-                progresso=1.0,
-                data_inicio=datetime(2026, 2, 28),
-                data_termino=datetime(2026, 3, 1),
-                dias_previstos=1,
-                observacoes="Ordem de Serviço assinada e enviada."
-            ),
-            Etapa(
-                fase_id=fase1.id,
-                nome_tarefa="Orientações ao Financeiro",
-                responsavel="Nadia",
-                progresso=1.0,
-                data_inicio=datetime(2026, 3, 1),
-                data_termino=datetime(2026, 3, 2),
-                dias_previstos=1,
-                observacoes="Solicitação de faturamento e adiantamento de despesas de campo."
-            )
+        e1_c1 = [
+            Etapa(fase_id=f1_c1.id, nome_tarefa="Abertura de ART no CREA-MG", responsavel="Robson Ribeiro", progresso=1.0, data_inicio=hoje - timedelta(days=20), data_termino=hoje - timedelta(days=18), dias_previstos=2, observacoes="ART emitida com sucesso."),
+            Etapa(fase_id=f1_c1.id, nome_tarefa="Alinhamento técnico e Termo de Referência", responsavel="Nadia Souza", progresso=1.0, data_inicio=hoje - timedelta(days=18), data_termino=hoje - timedelta(days=15), dias_previstos=3, observacoes="Termo aprovado pelo cliente."),
+            Etapa(fase_id=f2_c1.id, nome_tarefa="Implantação de marcos geodésicos", responsavel="Humberto Silva", progresso=1.0, data_inicio=hoje - timedelta(days=14), data_termino=hoje - timedelta(days=10), dias_previstos=4, observacoes="4 marcos homologados IBGE."),
+            Etapa(fase_id=f2_c1.id, nome_tarefa="Rastreio e levantamento da cava mineral", responsavel="Humberto Silva", progresso=0.8, data_inicio=hoje - timedelta(days=10), data_termino=hoje + timedelta(days=2), dias_previstos=8, observacoes="80% da área de cava coberta."),
+            Etapa(fase_id=f3_c1.id, nome_tarefa="Cálculo e ajustamento das poligonais", responsavel="Carlos Eduardo", progresso=0.2, data_inicio=hoje - timedelta(days=2), data_termino=hoje + timedelta(days=10), dias_previstos=8, observacoes="Processamento no software topográfico."),
+            Etapa(fase_id=f3_c1.id, nome_tarefa="Emissão da planta final e memorial descritivo", responsavel="Robson Ribeiro", progresso=0.0, data_inicio=hoje + timedelta(days=10), data_termino=hoje + timedelta(days=22), dias_previstos=12, observacoes="Aguardando fechamento do campo.")
         ]
-        
-        # Etapas da Fase 2 - Mapeamento de Campo
-        etapas_fase2 = [
-            Etapa(
-                fase_id=fase2.id,
-                nome_tarefa="Mobilização de campo",
-                responsavel="Humberto",
-                progresso=1.0,
-                data_inicio=datetime(2026, 3, 3),
-                data_termino=datetime(2026, 3, 4),
-                dias_previstos=1,
-                observacoes="Equipe e equipamentos deslocados com sucesso para Igaratinga/MG."
-            ),
-            Etapa(
-                fase_id=fase2.id,
-                nome_tarefa="Mapeamento 830.067/2025",
-                responsavel="Humberto",
-                progresso=0.5,
-                data_inicio=datetime(2026, 3, 4),
-                data_termino=datetime(2026, 3, 12),
-                dias_previstos=8,
-                observacoes="Mapeamento geológico-topográfico em andamento (50% de área)."
-            ),
-            Etapa(
-                fase_id=fase2.id,
-                nome_tarefa="Mapeamento 831.199/2025",
-                responsavel="Humberto",
-                progresso=0.0,
-                data_inicio=datetime(2026, 3, 12),
-                data_termino=datetime(2026, 3, 16),
-                dias_previstos=4,
-                observacoes="Aguardando liberação de proprietário da fazenda vizinha."
-            )
-        ]
-        
-        # Etapas da Fase 3 - Elaboração de Relatório (A definir/Padrão)
-        etapas_fase3 = [
-            Etapa(
-                fase_id=fase3.id,
-                nome_tarefa="Consolidação de dados de campo",
-                responsavel="Nadia",
-                progresso=0.0,
-                data_inicio=datetime(2026, 3, 16),
-                data_termino=datetime(2026, 3, 18),
-                dias_previstos=2,
-                observacoes="Importação dos pontos e processamento topográfico pós-campo."
-            ),
-            Etapa(
-                fase_id=fase3.id,
-                nome_tarefa="Elaboração do relatório técnico",
-                responsavel="Robson Ribeiro",
-                progresso=0.0,
-                data_inicio=datetime(2026, 3, 18),
-                data_termino=datetime(2026, 3, 20),
-                dias_previstos=2,
-                observacoes="Redação da fundamentação geológica e geração de mapas temáticos."
-            ),
-            Etapa(
-                fase_id=fase3.id,
-                nome_tarefa="Envio de relatório ao cliente",
-                responsavel="Robson Ribeiro",
-                progresso=0.0,
-                data_inicio=datetime(2026, 3, 20),
-                data_termino=datetime(2026, 3, 21),
-                dias_previstos=1,
-                observacoes="Envio formal em PDF e entrega física dos mapas assinados."
-            )
-        ]
-        
-        db.add_all(etapas_fase1)
-        db.add_all(etapas_fase2)
-        db.add_all(etapas_fase3)
+        db.add_all(e1_c1)
         db.commit()
 
-        # 6. Histórico Inicial
-        print("Registrando histórico inicial...")
-        historico = HistoricoAlteracao(
-            contrato_id=contrato.id,
-            campo_alterado="Criado",
-            valor_anterior=None,
-            valor_novo="Contrato importado da planilha original",
-            alterado_por="Sistema",
-            alterado_em=datetime.utcnow()
+        # =====================================================================
+        # CONTRATO 2: Geologia (Atenção - Vence em 4 dias!)
+        # =====================================================================
+        print("Semeando Contrato 2: Modelagem Geológica Serra Azul...")
+        c2 = Contrato(
+            nome_projeto="Sondagem e Modelagem Geológica 3D Serra Azul",
+            cliente="Mineração Morro do Ipê",
+            empresa="Aldebaran Consultoria",
+            direitos_minerarios="830.067/2024",
+            area="Geologia",
+            diretor_projeto="Robson Ribeiro",
+            data_inicio=hoje - timedelta(days=35),
+            data_entrega_final=hoje + timedelta(days=4), # ≤ 7 dias -> status ATENÇÃO!
+            dias_campo_total=16,
+            status="atencao",
+            observacoes="Campanha de sondagem rotativa e modelagem litológica em software 3D para estimativa de reservas."
         )
-        db.add(historico)
+        db.add(c2)
+        db.commit()
+
+        f1_c2 = Fase(contrato_id=c2.id, nome_fase="Fase 1 – Locação e Sondagem de Campo", ordem=1)
+        f2_c2 = Fase(contrato_id=c2.id, nome_fase="Fase 2 – Descrição Litológica e Amostragem", ordem=2)
+        f3_c2 = Fase(contrato_id=c2.id, nome_fase="Fase 3 – Relatório e Modelagem Geológica", ordem=3)
+        db.add_all([f1_c2, f2_c2, f3_c2])
+        db.commit()
+
+        e2_c2 = [
+            Etapa(fase_id=f1_c2.id, nome_tarefa="Locação dos furos de sondagem", responsavel="Mariana Lopes", progresso=1.0, data_inicio=hoje - timedelta(days=35), data_termino=hoje - timedelta(days=30), dias_previstos=5),
+            Etapa(fase_id=f1_c2.id, nome_tarefa="Perfuração rotativa (12 furos)", responsavel="Humberto Silva", progresso=1.0, data_inicio=hoje - timedelta(days=30), data_termino=hoje - timedelta(days=15), dias_previstos=15),
+            Etapa(fase_id=f2_c2.id, nome_tarefa="Classificação de testemunhos de sondagem", responsavel="Mariana Lopes", progresso=0.9, data_inicio=hoje - timedelta(days=15), data_termino=hoje + timedelta(days=1), dias_previstos=8, observacoes="Falta apenas o furo SR-12."),
+            Etapa(fase_id=f3_c2.id, nome_tarefa="Modelagem 3D do corpo de minério", responsavel="Mariana Lopes", progresso=0.6, data_inicio=hoje - timedelta(days=8), data_termino=hoje + timedelta(days=4), dias_previstos=6, observacoes="Fase crítica para entrega no prazo."),
+            Etapa(fase_id=f3_c2.id, nome_tarefa="Revisão final do parecer técnico com diretor", responsavel="Robson Ribeiro", progresso=0.0, data_inicio=hoje + timedelta(days=2), data_termino=hoje + timedelta(days=4), dias_previstos=2)
+        ]
+        db.add_all(e2_c2)
+        db.commit()
+
+        # =====================================================================
+        # CONTRATO 3: Topografia (Atrasado - Venceu há 6 dias)
+        # =====================================================================
+        print("Semeando Contrato 3: Georreferenciamento Nova Lima...")
+        c3 = Contrato(
+            nome_projeto="Levantamento Planialtimétrico Cadastral Nova Lima",
+            cliente="Construtora Caparaó",
+            empresa="Aldebaran Consultoria",
+            direitos_minerarios="N/A (Imóvel Urbano)",
+            area="Topografia",
+            diretor_projeto="Robson Ribeiro",
+            data_inicio=hoje - timedelta(days=40),
+            data_entrega_final=hoje - timedelta(days=6), # Passou do prazo -> ATRASADO!
+            dias_campo_total=8,
+            status="atrasado",
+            observacoes="Cadastro de interferências de rede e limites de propriedade para empreendimento residencial."
+        )
+        db.add(c3)
+        db.commit()
+
+        f1_c3 = Fase(contrato_id=c3.id, nome_fase="Fase 1 – Poligonal Básica", ordem=1)
+        f2_c3 = Fase(contrato_id=c3.id, nome_fase="Fase 2 – Levantamento Cadastral", ordem=2)
+        f3_c3 = Fase(contrato_id=c3.id, nome_fase="Fase 3 – Memorial e Plantas", ordem=3)
+        db.add_all([f1_c3, f2_c3, f3_c3])
+        db.commit()
+
+        e3_c3 = [
+            Etapa(fase_id=f1_c3.id, nome_tarefa="Implantação de rede de apoio", responsavel="Carlos Eduardo", progresso=1.0, data_inicio=hoje - timedelta(days=40), data_termino=hoje - timedelta(days=35), dias_previstos=5),
+            Etapa(fase_id=f2_c3.id, nome_tarefa="Levantamento de limites confrontantes", responsavel="Humberto Silva", progresso=0.6, data_inicio=hoje - timedelta(days=35), data_termino=hoje - timedelta(days=10), dias_previstos=12, observacoes="Atraso devido à dificuldade de acesso à divisa sul."),
+            Etapa(fase_id=f3_c3.id, nome_tarefa="Elaboração do memorial para cartório", responsavel="Nadia Souza", progresso=0.2, data_inicio=hoje - timedelta(days=10), data_termino=hoje - timedelta(days=6), dias_previstos=4, observacoes="Aguardando liberação dos dados pendentes de campo.")
+        ]
+        db.add_all(e3_c3)
+        db.commit()
+
+        # =====================================================================
+        # CONTRATO 4: Meio Ambiente (No Prazo - Em Andamento)
+        # =====================================================================
+        print("Semeando Contrato 4: Licenciamento PCA/RCA...")
+        c4 = Contrato(
+            nome_projeto="Plano de Controle Ambiental (PCA) e Caracterização Florística",
+            cliente="Votorantim Cimentos S.A.",
+            empresa="Aldebaran Consultoria",
+            direitos_minerarios="832.410/2023",
+            area="Meio Ambiente",
+            diretor_projeto="Robson Ribeiro",
+            data_inicio=hoje - timedelta(days=15),
+            data_entrega_final=hoje + timedelta(days=35),
+            dias_campo_total=6,
+            status="no_prazo",
+            observacoes="Estudo ambiental para obtenção de Licença de Instalação (LI) de nova frente de lavra."
+        )
+        db.add(c4)
+        db.commit()
+
+        f1_c4 = Fase(contrato_id=c4.id, nome_fase="Fase 1 – Diagnóstico Ambiental", ordem=1)
+        f2_c4 = Fase(contrato_id=c4.id, nome_fase="Fase 2 – Redação Técnica e Protocolo", ordem=2)
+        db.add_all([f1_c4, f2_c4])
+        db.commit()
+
+        e4_c4 = [
+            Etapa(fase_id=f1_c4.id, nome_tarefa="Inventário florestal e censo arbóreo", responsavel="Letícia Fontes", progresso=1.0, data_inicio=hoje - timedelta(days=15), data_termino=hoje - timedelta(days=8), dias_previstos=7),
+            Etapa(fase_id=f1_c4.id, nome_tarefa="Levantamento de recursos hídricos e APPs", responsavel="Letícia Fontes", progresso=0.7, data_inicio=hoje - timedelta(days=8), data_termino=hoje + timedelta(days=10), dias_previstos=10),
+            Etapa(fase_id=f2_c4.id, nome_tarefa="Elaboração dos programas ambientais do PCA", responsavel="Letícia Fontes", progresso=0.2, data_inicio=hoje + timedelta(days=10), data_termino=hoje + timedelta(days=35), dias_previstos=15)
+        ]
+        db.add_all(e4_c4)
+        db.commit()
+
+        # =====================================================================
+        # CONTRATO 5: Geologia (Concluído)
+        # =====================================================================
+        print("Semeando Contrato 5: Laudo de Estabilidade...")
+        c5 = Contrato(
+            nome_projeto="Laudo de Estabilidade Geotécnica de Taludes e Encostas",
+            cliente="Vale S.A.",
+            empresa="Aldebaran Consultoria",
+            direitos_minerarios="830.112/2020",
+            area="Geologia",
+            diretor_projeto="Robson Ribeiro",
+            data_inicio=hoje - timedelta(days=60),
+            data_entrega_final=hoje - timedelta(days=10),
+            dias_campo_total=10,
+            status="concluido",
+            observacoes="Inspeção e análise cinemática de descontinuidades com entrega de parecer ART homologado."
+        )
+        db.add(c5)
+        db.commit()
+
+        f1_c5 = Fase(contrato_id=c5.id, nome_fase="Fase Única – Vistoria e Laudo", ordem=1)
+        db.add(f1_c5)
+        db.commit()
+
+        e5_c5 = [
+            Etapa(fase_id=f1_c5.id, nome_tarefa="Inspeção técnica de campo e drone", responsavel="Mariana Lopes", progresso=1.0, data_inicio=hoje - timedelta(days=60), data_termino=hoje - timedelta(days=45), dias_previstos=15),
+            Etapa(fase_id=f1_c5.id, nome_tarefa="Cálculo do Fator de Segurança (FS)", responsavel="Mariana Lopes", progresso=1.0, data_inicio=hoje - timedelta(days=45), data_termino=hoje - timedelta(days=20), dias_previstos=15),
+            Etapa(fase_id=f1_c5.id, nome_tarefa="Emissão do Relatório e entrega ao cliente", responsavel="Robson Ribeiro", progresso=1.0, data_inicio=hoje - timedelta(days=20), data_termino=hoje - timedelta(days=10), dias_previstos=10)
+        ]
+        db.add_all(e5_c5)
         db.commit()
 
         print("======================================================")
-        print("Banco de dados semeado com sucesso!")
+        print("Banco de dados semeado com 5 contratos realistas!")
+        print(" - 2 Contratos No Prazo")
+        print(" - 1 Contrato em Atenção (vence em breve)")
+        print(" - 1 Contrato Atrasado")
+        print(" - 1 Contrato Concluído")
         print("======================================================")
 
     except Exception as e:
         db.rollback()
-        print(f"[ERRO NO SEED] Falha ao semear banco de dados: {str(e)}")
+        print(f"[ERRO NO SEED]: {str(e)}")
         raise e
     finally:
         db.close()

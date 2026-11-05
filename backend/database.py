@@ -4,9 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Nome do arquivo do banco de dados SQLite local
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE_NAME = "aldebaran.db"
-# Caminho absoluto ou relativo do banco de dados
-DATABASE_URL = f"sqlite:///{DATABASE_NAME}"
+# Caminho absoluto do banco de dados SQLite
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, DATABASE_NAME)}"
 
 # Criação do engine de conexão com o banco SQLite.
 # 'connect_args={"check_same_thread": False}' é necessário apenas para o SQLite,
