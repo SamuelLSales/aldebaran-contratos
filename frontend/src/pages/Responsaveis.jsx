@@ -265,14 +265,14 @@ const Responsaveis = () => {
                   type="button"
                   onClick={() => setFiltroArea(c.id)}
                   aria-pressed={ativo}
-                  className={`h-8 px-3 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40 ${
+                  className={`h-8 px-3 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent/40 cursor-pointer ${
                     ativo
-                      ? 'bg-brand-primary-light text-brand-primary'
+                      ? 'bg-[#1C1D1F] text-white'
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {c.label}
-                  <span className="ml-1.5 text-xs tabular-nums text-slate-500">{c.total}</span>
+                  <span className={`ml-1.5 text-xs tabular-nums ${ativo ? 'text-white/80' : 'text-slate-500'}`}>{c.total}</span>
                 </button>
               );
             })}
@@ -315,7 +315,7 @@ const Responsaveis = () => {
                         <div className="flex items-center gap-3">
                           <div
                             aria-hidden="true"
-                            className="w-8 h-8 rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center font-semibold text-xs select-none"
+                            className="w-8 h-8 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] flex items-center justify-center font-semibold text-xs select-none"
                           >
                             {obterIniciais(resp.nome)}
                           </div>

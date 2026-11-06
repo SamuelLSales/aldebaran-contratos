@@ -274,7 +274,7 @@ const Dashboard = () => {
           onClick={() => setAbaAtiva('geral')}
           className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative cursor-pointer ${
             abaAtiva === 'geral'
-              ? 'text-primary border-b-2 border-primary'
+              ? 'text-[#1C1D1F] border-b-2 border-[#266DF0]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -284,13 +284,13 @@ const Dashboard = () => {
           onClick={() => setAbaAtiva('gargalos')}
           className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative flex items-center gap-2 cursor-pointer ${
             abaAtiva === 'gargalos'
-              ? 'text-primary border-b-2 border-primary'
+              ? 'text-[#1C1D1F] border-b-2 border-[#266DF0]'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           Análise de Prazos & Gargalos
           {etapasAtrasadas.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700">
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE]">
               {etapasAtrasadas.length}
             </span>
           )}
@@ -299,11 +299,11 @@ const Dashboard = () => {
 
       {/* ERROS DE CONEXÃO */}
       {error && (
-        <div className="bg-rose-50 text-rose-800 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
-          <AlertCircle className="text-rose-600 w-5 h-5 shrink-0 mt-0.5" />
+        <div className="bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle className="text-[#E5392D] w-5 h-5 shrink-0 mt-0.5" />
           <div>
             <h4 className="font-semibold text-sm">Problema com o servidor</h4>
-            <p className="text-rose-600 text-xs mt-0.5">{error}</p>
+            <p className="text-slate-600 text-xs mt-0.5">{error}</p>
           </div>
         </div>
       )}
@@ -312,21 +312,21 @@ const Dashboard = () => {
       {abaAtiva === 'geral' && (
         <div className="space-y-6">
 
-          {/* 4 CARDS DE MÉTRICAS EXECUTIVAS */}
+          {/* 4 CARDS DE MÉTRICAS EXECUTIVAS (Estilo Attio) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Total */}
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Contratos Ativos</span>
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                <div className="w-8 h-8 rounded-lg bg-[#F4F5F6] border border-[#E6E7EA] flex items-center justify-center text-[#36383D]">
                   <Briefcase className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-900">
+                <span className="text-2xl font-bold text-slate-900 tabular-nums">
                   {contratosEmAberto.length}
                 </span>
-                <span className="text-xs text-slate-400">em andamento</span>
+                <span className="text-xs text-slate-500">em andamento</span>
               </div>
             </div>
 
@@ -334,15 +334,15 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">No Prazo</span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#EAFBF1] border border-[#C6F0D8] text-[#0E7138] flex items-center justify-center">
                   <CheckCircle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-emerald-600">
+                <span className="text-2xl font-bold text-slate-900 tabular-nums">
                   {stats.contratos_no_prazo || 0}
                 </span>
-                <span className="text-xs text-emerald-700/80 font-medium">cronograma em dia</span>
+                <span className="text-xs text-slate-500 font-medium">cronograma em dia</span>
               </div>
             </div>
 
@@ -350,15 +350,15 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Atenção (≤ 7 dias)</span>
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#FFF6E5] border border-[#FDE2B3] text-[#945300] flex items-center justify-center">
                   <Clock className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-amber-600">
+                <span className="text-2xl font-bold text-slate-900 tabular-nums">
                   {stats.contratos_atencao || 0}
                 </span>
-                <span className="text-xs text-amber-700/80 font-medium">vence em breve</span>
+                <span className="text-xs text-slate-500 font-medium">vence em breve</span>
               </div>
             </div>
 
@@ -366,15 +366,17 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Com Atraso</span>
-                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-rose-600">
+                <span className="text-2xl font-bold text-slate-900 tabular-nums">
                   {stats.contratos_atrasados || 0}
                 </span>
-                <span className="text-xs text-rose-700/80 font-medium">requer ação</span>
+                <span className={`text-xs font-medium ${(stats.contratos_atrasados || 0) > 0 ? 'text-[#B42318] font-semibold' : 'text-slate-500'}`}>
+                  requer ação
+                </span>
               </div>
             </div>
           </div>
@@ -453,13 +455,13 @@ const Dashboard = () => {
                       if (diasRestantes !== null) {
                         if (diasRestantes < 0) {
                           diasBadge = (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60 font-mono">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] font-mono">
                               Atrasado há {Math.abs(diasRestantes)}d
                             </span>
                           );
                         } else if (diasRestantes <= 7) {
                           diasBadge = (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60 font-mono">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF6E5] text-[#945300] border border-[#FDE2B3] font-mono">
                               {diasRestantes} dias
                             </span>
                           );
@@ -472,13 +474,8 @@ const Dashboard = () => {
                         }
                       }
 
-                      // Badge de área
-                      const areaStyles = {
-                        Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
-                        Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
-                        'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                      };
-                      const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
+                      // Badge de área estilo Attio
+                      const currentAreaStyle = 'bg-[#F4F5F6] text-[#36383D] border-[#E6E7EA]';
 
                       return (
                         <tr
@@ -488,7 +485,7 @@ const Dashboard = () => {
                         >
                           {/* Projeto e Cliente */}
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                            <div className="font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
                               {contrato.nome_projeto}
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5">
@@ -506,7 +503,7 @@ const Dashboard = () => {
                           {/* Diretor Responsável */}
                           <td className="py-3.5 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-primary text-white text-[10px] font-semibold flex items-center justify-center uppercase">
+                              <div className="w-6 h-6 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] text-[10px] font-semibold flex items-center justify-center uppercase">
                                 {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2) : '??'}
                               </div>
                               <span className="text-xs font-medium text-slate-700">
@@ -528,14 +525,12 @@ const Dashboard = () => {
                           {/* Barra de Progresso */}
                           <td className="py-3.5 px-4">
                             <div className="flex items-center gap-3 min-w-[130px]">
-                              <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all duration-300 ${
                                     contrato.status === 'atrasado'
-                                      ? 'bg-rose-500'
-                                      : contrato.status === 'atencao'
-                                        ? 'bg-amber-500'
-                                        : 'bg-emerald-500'
+                                      ? 'bg-[#E5392D]'
+                                      : 'bg-[#266DF0]'
                                   }`}
                                   style={{ width: `${progresso}%` }}
                                 ></div>
@@ -571,7 +566,7 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Tarefas Vencidas</span>
-                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
                   <AlertTriangle className="w-4 h-4" />
                 </div>
               </div>
@@ -579,14 +574,14 @@ const Dashboard = () => {
                 <span className="text-2xl font-bold font-mono text-slate-900">
                   {etapasAtrasadas.length.toString().padStart(2, '0')}
                 </span>
-                <span className="text-xs text-rose-600 font-medium">pendentes</span>
+                <span className="text-xs text-[#B42318] font-medium">pendentes</span>
               </div>
             </div>
 
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Média de Atraso</span>
-                <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#F4F5F6] border border-[#E6E7EA] text-[#36383D] flex items-center justify-center">
                   <Clock className="w-4 h-4" />
                 </div>
               </div>
@@ -601,12 +596,12 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Maior Atraso Único</span>
-                <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
                   <AlertCircle className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold font-mono text-rose-600">
+                <span className="text-2xl font-bold font-mono text-[#B42318]">
                   {gargalosInfo.maiorAtraso}
                 </span>
                 <span className="text-xs text-slate-500 font-medium">dias no maior gargalo</span>
@@ -616,7 +611,7 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-500">Maior Acúmulo</span>
-                <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-[#EEF4FF] border border-[#D4E2FF] text-[#266DF0] flex items-center justify-center">
                   <User className="w-4 h-4" />
                 </div>
               </div>
@@ -659,7 +654,7 @@ const Dashboard = () => {
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-accent rounded-full transition-all duration-500"
+                            className="h-full bg-[#266DF0] rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
                           ></div>
                         </div>
@@ -695,7 +690,7 @@ const Dashboard = () => {
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-amber-500 rounded-full transition-all duration-500"
+                            className="h-full bg-[#1C1D1F] rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
                           ></div>
                         </div>
@@ -720,8 +715,8 @@ const Dashboard = () => {
             </div>
 
             {etapasAtrasadas.length === 0 ? (
-              <div className="text-center py-16 text-emerald-600 text-sm flex flex-col items-center gap-2">
-                <CheckCircle className="w-8 h-8 text-emerald-500" />
+              <div className="text-center py-16 text-slate-700 text-sm flex flex-col items-center gap-2">
+                <CheckCircle className="w-8 h-8 text-[#12A150]" />
                 <span className="font-semibold">Excelente! Nenhuma atividade está atrasada no momento.</span>
               </div>
             ) : (
@@ -745,7 +740,7 @@ const Dashboard = () => {
                         onClick={() => navigate(`/contratos/${etapa.contrato_id}`)}
                         className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
                       >
-                        <td className="py-3.5 px-4 font-semibold text-slate-900 group-hover:text-primary transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
                           {etapa.nome_tarefa}
                         </td>
                         <td className="py-3.5 px-4">
@@ -759,14 +754,14 @@ const Dashboard = () => {
                           {formatarData(etapa.data_termino)}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60 font-mono">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] font-mono">
                             {etapa.dias_atraso}d de atraso
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-2">
                             <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-rose-500 rounded-full" style={{ width: `${etapa.progresso}%` }}></div>
+                              <div className="h-full bg-[#E5392D] rounded-full" style={{ width: `${etapa.progresso}%` }}></div>
                             </div>
                             <span className="text-xs font-mono font-medium text-slate-500">{etapa.progresso}%</span>
                           </div>

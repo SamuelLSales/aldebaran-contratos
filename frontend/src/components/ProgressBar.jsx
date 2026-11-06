@@ -1,12 +1,10 @@
 import React from 'react';
 
-/** Faixas: <30% vermelho, 30–79% âmbar, ≥80% verde (cores de status do design system). */
+/** Barra de progresso estilo Attio: Azul Attio (#266DF0) por padrão, vermelha apenas quando crítica (<30%). */
 const ProgressBar = ({ value, showText = true }) => {
   const cleanValue = Math.min(Math.max(Math.round(Number(value) || 0), 0), 100);
 
-  let cor = 'bg-status-danger';
-  if (cleanValue >= 80) cor = 'bg-status-success';
-  else if (cleanValue >= 30) cor = 'bg-status-warning';
+  const cor = cleanValue < 30 ? 'bg-[#E5392D]' : 'bg-[#266DF0]';
 
   return (
     <div className="w-full flex items-center gap-3">

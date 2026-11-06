@@ -9,15 +9,15 @@ const contratosDemo = [
     projeto: 'Mapeamento Topográfico e Georreferenciamento Igaratinga',
     cliente: 'Exbel Mineração S.A.',
     area: 'Topografia',
-    dot: 'bg-sky-500',
+    dot: 'bg-[#266DF0]',
     diretor: 'Robson Ribeiro',
     entrega: '21/11/2026',
     restante: '18 dias',
     status: 'No prazo',
-    statusStyle: 'bg-emerald-50 text-emerald-800',
-    statusDot: 'bg-status-success',
+    statusStyle: 'bg-[#EAFBF1] text-[#0E7138] border border-[#C6F0D8]',
+    statusDot: 'bg-[#12A150]',
     progresso: 63,
-    barColor: 'bg-status-success',
+    barColor: 'bg-[#266DF0]',
     fases: [
       { nome: 'Fase 1 · Planejamento e Mobilização', resp: 'Humberto Silva', inicio: '01/10', fim: '10/10', avanco: 100 },
       { nome: 'Fase 2 · Levantamento Planialtimétrico de Campo', resp: 'Carlos Eduardo', inicio: '11/10', fim: '05/11', avanco: 75 },
@@ -29,15 +29,15 @@ const contratosDemo = [
     projeto: 'Sondagem Rotativa e Modelagem Geológica 3D Serra Azul',
     cliente: 'Mineração Morro do Ipê',
     area: 'Geologia',
-    dot: 'bg-amber-500',
+    dot: 'bg-[#36383D]',
     diretor: 'Mariana Lopes',
     entrega: '08/11/2026',
     restante: '5 dias',
     status: 'Atenção',
-    statusStyle: 'bg-amber-50 text-amber-800',
-    statusDot: 'bg-status-warning',
+    statusStyle: 'bg-[#FFF6E5] text-[#945300] border border-[#FDE2B3]',
+    statusDot: 'bg-[#E08600]',
     progresso: 78,
-    barColor: 'bg-status-warning',
+    barColor: 'bg-[#266DF0]',
     fases: [
       { nome: 'Fase 1 · Locação de Furos e Sondagem', resp: 'Mariana Lopes', inicio: '15/09', fim: '15/10', avanco: 100 },
       { nome: 'Fase 2 · Descrição Litológica e Amostragem', resp: 'Mariana Lopes', inicio: '16/10', fim: '28/10', avanco: 100 },
@@ -49,15 +49,15 @@ const contratosDemo = [
     projeto: 'Levantamento Planialtimétrico Cadastral Nova Lima',
     cliente: 'Construtora Caparaó',
     area: 'Topografia',
-    dot: 'bg-sky-500',
+    dot: 'bg-[#266DF0]',
     diretor: 'Robson Ribeiro',
     entrega: '24/10/2026',
     restante: 'Atrasado há 10d',
     status: 'Atrasado',
-    statusStyle: 'bg-red-50 text-red-800',
-    statusDot: 'bg-status-danger',
+    statusStyle: 'bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE]',
+    statusDot: 'bg-[#E5392D]',
     progresso: 40,
-    barColor: 'bg-status-danger',
+    barColor: 'bg-[#E5392D]',
     fases: [
       { nome: 'Fase 1 · Implantação de Marcos Geodésicos', resp: 'Humberto Silva', inicio: '01/10', fim: '08/10', avanco: 100 },
       { nome: 'Fase 2 · Cadastro de Interferências e Drenagem', resp: 'Carlos Eduardo', inicio: '09/10', fim: '18/10', avanco: 20 },
@@ -69,15 +69,15 @@ const contratosDemo = [
     projeto: 'Plano de Controle Ambiental (PCA) e Caracterização Florística',
     cliente: 'Votorantim Cimentos S.A.',
     area: 'Meio Ambiente',
-    dot: 'bg-emerald-500',
+    dot: 'bg-[#12A150]',
     diretor: 'Letícia Fontes',
     entrega: '04/12/2026',
     restante: '31 dias',
     status: 'No prazo',
-    statusStyle: 'bg-emerald-50 text-emerald-800',
-    statusDot: 'bg-status-success',
+    statusStyle: 'bg-[#EAFBF1] text-[#0E7138] border border-[#C6F0D8]',
+    statusDot: 'bg-[#12A150]',
     progresso: 63,
-    barColor: 'bg-status-success',
+    barColor: 'bg-[#266DF0]',
     fases: [
       { nome: 'Fase 1 · Diagnóstico Ambiental e Campanhas', resp: 'Letícia Fontes', inicio: '10/10', fim: '30/10', avanco: 100 },
       { nome: 'Fase 2 · Inventário Florestal e Laudos', resp: 'Letícia Fontes', inicio: '01/11', fim: '20/11', avanco: 60 },
@@ -130,9 +130,9 @@ const InteractiveWorkspacePreview = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border-b border-slate-200 bg-slate-50/50">
           {[
             { label: 'Contratos ativos', valor: '04', nota: 'em execução', cor: 'text-slate-900' },
-            { label: 'No prazo', valor: '02', nota: 'cronograma regular', cor: 'text-slate-900', dot: 'bg-status-success' },
-            { label: 'Atenção (≤ 7 dias)', valor: '01', nota: 'entrega próxima', cor: 'text-status-warning', dot: 'bg-status-warning' },
-            { label: 'Em atraso', valor: '01', nota: 'prazo ultrapassado', cor: 'text-status-danger', dot: 'bg-status-danger' },
+            { label: 'No prazo', valor: '02', nota: 'cronograma regular', cor: 'text-slate-900', dot: 'bg-[#2b2b27]' },
+            { label: 'Atenção (≤ 7 dias)', valor: '01', nota: 'entrega próxima', cor: 'text-slate-900', dot: 'bg-[#b43310]' },
+            { label: 'Em atraso', valor: '01', nota: 'prazo ultrapassado', cor: 'text-primary', dot: 'bg-primary' },
           ].map((k) => (
             <div key={k.label} className="px-5 py-3.5">
               <div className="flex items-center justify-between">
@@ -278,280 +278,197 @@ const InteractiveWorkspacePreview = () => {
   );
 };
 
+
+/* Rótulo pequeno em caixa alta com espaçamento largo (microtipografia editorial) */
+const Eyebrow = ({ children }) => (
+  <span className="font-display text-[11px] font-medium uppercase tracking-[0.28em] text-[#8A8F98]">
+    {children}
+  </span>
+);
+
 const Landing = () => (
-  <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-white">
-    {/* TOPBAR FIXA E ESTRUTURADA */}
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/projectsight" className="text-base font-bold tracking-tight text-slate-900">
-          Project<span className="text-primary">Sight</span>
+  <div className="min-h-screen bg-[#0B0C0E] text-[#F2F3F5] font-sans selection:bg-[#266DF0] selection:text-white">
+    {/* TOPBAR MINIMALISTA */}
+    <header className="absolute top-0 inset-x-0 z-30">
+      <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <Link to="/projectsight" className="font-display text-sm font-bold tracking-[0.18em] uppercase text-white">
+          PS
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600" aria-label="Seções">
-          <a href="#visao-geral" className="hover:text-slate-900 transition-colors">
-            Visão geral
+        <nav className="flex items-center gap-8" aria-label="Navegação">
+          <a href="#sistema" className="hidden sm:inline font-display text-[11px] uppercase tracking-[0.24em] text-[#9A9EA6] hover:text-white transition-colors">
+            Sistema
           </a>
-          <a href="#arquitetura" className="hover:text-slate-900 transition-colors">
-            Estrutura de controle
+          <a href="#prazos" className="hidden sm:inline font-display text-[11px] uppercase tracking-[0.24em] text-[#9A9EA6] hover:text-white transition-colors">
+            Prazos
           </a>
-          <a href="#prazos" className="hover:text-slate-900 transition-colors">
-            Regras de prazo
-          </a>
-          <a href="#frentes" className="hover:text-slate-900 transition-colors">
-            Frentes técnicas
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-3">
           <Link
             to="/login"
-            className="h-9 px-4 inline-flex items-center rounded-md bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors shadow-2xs"
+            className="font-display text-[11px] uppercase tracking-[0.24em] text-white border border-[#2B2E35] hover:border-[#5B93FF] hover:text-[#5B93FF] px-4 py-2 rounded-full transition-colors"
           >
-            Entrar no sistema
+            Entrar
           </Link>
-        </div>
+        </nav>
       </div>
     </header>
 
-    {/* HERO EDITORIAL + WORKSPACE INTERATIVO EM LARGURA REAL */}
-    <section id="visao-geral" className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/80">
-      <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
-        <div className="max-w-3xl">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 leading-[1.12]">
-            Acompanhamento técnico de contratos, fases operacionais e prazos de entrega.
-          </h1>
+    {/* HERO — marca tipográfica gigante */}
+    <section className="relative min-h-[88vh] flex flex-col items-center justify-center text-center px-6 overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_35%,rgba(38,109,240,0.14),transparent_60%)]"
+      />
+      <div className="relative">
+        <Eyebrow>Controle de contratos &amp; prazos</Eyebrow>
+        <h1 className="font-display mt-6 text-[clamp(3rem,11vw,9rem)] font-bold uppercase leading-[0.95] tracking-[0.02em] text-white">
+          Project<span className="text-[#5B93FF]">Sight</span>
+        </h1>
+        <p className="mt-6 max-w-xl mx-auto text-base sm:text-lg text-[#9A9EA6] leading-relaxed">
+          Cronogramas de Topografia, Geologia e Meio Ambiente em um só lugar — fases, etapas, responsáveis e vencimentos calculados automaticamente.
+        </p>
 
-          <p className="mt-5 text-lg text-slate-600 leading-relaxed max-w-2xl">
-            O {NOME} centraliza o cronograma de projetos de Topografia, Geologia e Meio Ambiente. Cada contrato é controlado por fases, etapas e responsáveis, com cálculo automático de vencimentos e histórico de alterações.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/login"
-              className="h-11 px-6 inline-flex items-center rounded-md bg-primary text-white text-sm font-semibold hover:bg-primary-hover transition-colors shadow-xs"
-            >
-              Acessar painel de contratos
-            </Link>
-            <a
-              href="#arquitetura"
-              className="h-11 px-5 inline-flex items-center rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-            >
-              Explorar como funciona
-            </a>
-          </div>
-        </div>
-
-        {/* Workspace interativo de ponta a ponta */}
-        <div className="mt-12">
-          <InteractiveWorkspacePreview />
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/login"
+            className="font-display h-11 px-7 inline-flex items-center rounded-full bg-[#266DF0] text-white text-[12px] font-semibold uppercase tracking-[0.2em] hover:bg-[#1D5AD1] transition-colors"
+          >
+            Acessar painel
+          </Link>
+          <a
+            href="#sistema"
+            className="font-display h-11 px-7 inline-flex items-center rounded-full border border-[#2B2E35] text-[12px] font-medium uppercase tracking-[0.2em] text-[#C9CCD2] hover:border-[#5B93FF] hover:text-white transition-colors"
+          >
+            Ver como funciona
+          </a>
         </div>
       </div>
-    </section>
 
-    {/* ESTRUTURA DE CONTROLE — GRADE ARQUITETÔNICA */}
-    <section id="arquitetura" className="max-w-6xl mx-auto px-6 py-20 scroll-mt-16">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-12">
-        <div className="max-w-xl">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Como o sistema organiza a operação
-          </h2>
-          <p className="mt-3 text-slate-600 leading-relaxed">
-            Em vez de planilhas paralelas, os dados ficam estruturados em três níveis hierárquicos conectados à equipe técnica e ao registro de auditoria.
-          </p>
-        </div>
-        <span className="font-mono text-xs text-slate-400">
-          CONTRATO → FASES → ETAPAS
+      {/* Indicador vertical de seção */}
+      <div aria-hidden="true" className="hidden md:flex absolute right-8 bottom-10 flex-col items-center gap-3">
+        <span className="font-display text-[10px] uppercase tracking-[0.3em] text-[#6B6F78] [writing-mode:vertical-rl]">
+          Scroll
         </span>
-      </div>
-
-      {/* Grade contínua */}
-      <div className="grid md:grid-cols-3 border border-slate-200 rounded-xl bg-card divide-y md:divide-y-0 md:divide-x divide-slate-200 shadow-card overflow-hidden">
-        <div className="p-7 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-              <span>NÍVEL 01</span>
-              <span>ESCOPO & PRAZO MACRO</span>
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">Registro do contrato</h3>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-              Reúne os dados contratuais do projeto: cliente, frente técnica, diretor responsável, direitos minerários, dias previstos de campo e data limite de entrega.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Progresso ponderado automático</span>
-            <span className="font-mono text-slate-700 font-medium">0% → 100%</span>
-          </div>
-        </div>
-
-        <div className="p-7 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-              <span>NÍVEL 02</span>
-              <span>MACROETAPAS</span>
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">Divisão em fases</h3>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-              Cada contrato pode ser estruturado em quantas fases forem necessárias (mobilização, levantamento de campo, processamento, relatório final), mantendo a ordem cronológica.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Visão recolhível por fase</span>
-            <span className="font-mono text-slate-700 font-medium">Ordem sequencial</span>
-          </div>
-        </div>
-
-        <div className="p-7 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs font-mono text-slate-400">
-              <span>NÍVEL 03</span>
-              <span>EXECUÇÃO TÉCNICA</span>
-            </div>
-            <h3 className="mt-4 text-lg font-semibold text-slate-900">Etapas e responsáveis</h3>
-            <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-              Dentro de cada fase ficam as tarefas operacionais com profissional nominalmente atribuído, datas de início e término, observações técnicas e controle de avanço.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Atualização direta por barra/slider</span>
-            <span className="font-mono text-slate-700 font-medium">Por colaborador</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Segunda linha de especificações funcionais */}
-      <div className="mt-5 grid md:grid-cols-3 gap-5">
-        <div className="bg-card border border-slate-200 rounded-xl p-6 shadow-card">
-          <h3 className="text-base font-semibold text-slate-900">Quadro de equipe e alocação</h3>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-            Lista todos os profissionais por função (Diretor, Coordenador, Campo, Escritório) e contabiliza automaticamente em quantos contratos ativos cada pessoa está envolvida.
-          </p>
-        </div>
-
-        <div className="bg-card border border-slate-200 rounded-xl p-6 shadow-card">
-          <h3 className="text-base font-semibold text-slate-900">Análise de gargalos e prazos</h3>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-            Aba analítica dedicada no painel principal para identificar rapidamente quais fases concentram atrasos e quais contratos vencem na semana corrente.
-          </p>
-        </div>
-
-        <div className="bg-card border border-slate-200 rounded-xl p-6 shadow-card">
-          <h3 className="text-base font-semibold text-slate-900">Rastreabilidade e exportação CSV</h3>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-            Log cronológico de todas as alterações feitas no contrato e exportação imediata da listagem completa em formato CSV para análises externas.
-          </p>
-        </div>
+        <span className="block w-px h-12 bg-gradient-to-b from-[#6B6F78] to-transparent" />
       </div>
     </section>
 
-    {/* REGRAS DE PRAZO E CLASSIFICAÇÃO */}
-    <section id="prazos" className="bg-card border-y border-slate-200 scroll-mt-16">
-      <div className="max-w-6xl mx-auto px-6 py-20 grid lg:grid-cols-12 gap-12 items-center">
+    {/* SISTEMA — janela clara flutuando sobre o fundo escuro */}
+    <section id="sistema" className="max-w-6xl mx-auto px-6 pb-28 scroll-mt-16">
+      <div className="flex items-center gap-4 mb-8">
+        <span className="font-display text-xs text-[#5B93FF]">01</span>
+        <span className="h-px flex-1 bg-[#1E2025]" />
+        <Eyebrow>O sistema</Eyebrow>
+      </div>
+      <div className="shadow-[0_40px_120px_-30px_rgba(38,109,240,0.35)] rounded-xl">
+        <InteractiveWorkspacePreview />
+      </div>
+    </section>
+
+    {/* ESTRUTURA */}
+    <section className="max-w-6xl mx-auto px-6 pb-28">
+      <div className="flex items-center gap-4 mb-12">
+        <span className="font-display text-xs text-[#5B93FF]">02</span>
+        <span className="h-px flex-1 bg-[#1E2025]" />
+        <Eyebrow>Estrutura</Eyebrow>
+      </div>
+
+      <h2 className="font-display text-3xl sm:text-5xl font-bold uppercase tracking-[0.02em] leading-tight max-w-3xl">
+        Contrato <span className="text-[#5B93FF]">→</span> Fases <span className="text-[#5B93FF]">→</span> Etapas
+      </h2>
+      <p className="mt-4 max-w-xl text-[#9A9EA6] leading-relaxed">
+        Em vez de planilhas paralelas, os dados ficam organizados em três níveis conectados à equipe técnica e ao histórico de auditoria.
+      </p>
+
+      <div className="mt-12 grid md:grid-cols-3 border border-[#1E2025] rounded-2xl bg-[#101114] divide-y md:divide-y-0 md:divide-x divide-[#1E2025] overflow-hidden">
+        {[
+          { n: 'Nível 01', t: 'Registro do contrato', d: 'Cliente, frente técnica, diretor responsável, direitos minerários, dias de campo e data limite de entrega.' },
+          { n: 'Nível 02', t: 'Divisão em fases', d: 'Mobilização, levantamento de campo, processamento e relatório final, sempre em ordem cronológica.' },
+          { n: 'Nível 03', t: 'Etapas e responsáveis', d: 'Tarefas com profissional atribuído, datas, observações técnicas e controle de avanço por etapa.' },
+        ].map((c) => (
+          <div key={c.n} className="p-8">
+            <Eyebrow>{c.n}</Eyebrow>
+            <h3 className="font-display mt-4 text-xl font-semibold text-white">{c.t}</h3>
+            <p className="mt-3 text-sm text-[#9A9EA6] leading-relaxed">{c.d}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 grid md:grid-cols-3 gap-5">
+        {[
+          { t: 'Equipe e alocação', d: 'Profissionais por função e contagem automática de contratos ativos por pessoa.' },
+          { t: 'Gargalos e prazos', d: 'Aba analítica para ver quais fases concentram atrasos e quais contratos vencem na semana.' },
+          { t: 'Rastreabilidade e CSV', d: 'Log cronológico de alterações e exportação imediata da listagem em CSV.' },
+        ].map((c) => (
+          <div key={c.t} className="rounded-2xl border border-[#1E2025] bg-[#101114] p-6">
+            <h3 className="font-display text-base font-semibold text-white">{c.t}</h3>
+            <p className="mt-2 text-sm text-[#9A9EA6] leading-relaxed">{c.d}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    {/* REGRAS DE PRAZO */}
+    <section id="prazos" className="max-w-6xl mx-auto px-6 pb-28 scroll-mt-16">
+      <div className="flex items-center gap-4 mb-12">
+        <span className="font-display text-xs text-[#5B93FF]">03</span>
+        <span className="h-px flex-1 bg-[#1E2025]" />
+        <Eyebrow>Regras de prazo</Eyebrow>
+      </div>
+
+      <div className="grid lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-5">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Critérios objetivos de status e alerta
+          <h2 className="font-display text-3xl sm:text-4xl font-bold uppercase tracking-[0.02em] leading-tight">
+            Status calculado, não preenchido
           </h2>
-          <p className="mt-3 text-slate-600 leading-relaxed">
-            A situação de cada contrato não depende de preenchimento subjetivo: ela é calculada pela relação entre a data atual, a data de entrega final e o percentual concluído.
+          <p className="mt-4 text-[#9A9EA6] leading-relaxed">
+            A situação de cada contrato vem da relação entre a data atual, a data de entrega e o percentual concluído.
           </p>
         </div>
 
-        <div className="lg:col-span-7">
-          <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-200 bg-background">
-            {[
-              {
-                status: 'No prazo',
-                badge: 'bg-emerald-50 text-emerald-800',
-                dot: 'bg-status-success',
-                condicao: 'Mais de 7 dias até a data de entrega',
-                descricao: 'Cronograma em andamento normal, sem alerta de vencimento iminente.',
-              },
-              {
-                status: 'Atenção',
-                badge: 'bg-amber-50 text-amber-800',
-                dot: 'bg-status-warning',
-                condicao: 'Entre 1 e 7 dias restantes',
-                descricao: 'Contrato entra na faixa de prioridade semanal para fechamento das etapas pendentes.',
-              },
-              {
-                status: 'Atrasado',
-                badge: 'bg-red-50 text-red-800',
-                dot: 'bg-status-danger',
-                descricao: 'Data final ultrapassada sem 100% de conclusão. Destacado no topo do painel executivo.',
-                condicao: 'Prazo final vencido (< 0 dias)',
-              },
-              {
-                status: 'Concluído',
-                badge: 'bg-slate-100 text-slate-700',
-                dot: 'bg-status-done',
-                condicao: '100% das etapas finalizadas',
-                descricao: 'Contrato encerrado, mantido no histórico para consulta e relatórios.',
-              },
-            ].map((item) => (
-              <div key={item.status} className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${item.badge}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${item.dot}`} />
-                      {item.status}
-                    </span>
-                    <span className="font-mono text-xs text-slate-500">{item.condicao}</span>
-                  </div>
-                  <p className="text-xs text-slate-500">{item.descricao}</p>
-                </div>
+        <div className="lg:col-span-7 border border-[#1E2025] rounded-2xl overflow-hidden divide-y divide-[#1E2025] bg-[#101114]">
+          {[
+            { s: 'No prazo', c: 'text-[#4ADE80] bg-[#4ADE80]/10 border-[#4ADE80]/25', d: 'bg-[#4ADE80]', cond: 'Mais de 7 dias até a entrega', desc: 'Cronograma normal, sem alerta de vencimento.' },
+            { s: 'Atenção', c: 'text-[#FBBF24] bg-[#FBBF24]/10 border-[#FBBF24]/25', d: 'bg-[#FBBF24]', cond: 'Entre 1 e 7 dias restantes', desc: 'Entra na faixa de prioridade semanal.' },
+            { s: 'Atrasado', c: 'text-[#F87171] bg-[#F87171]/10 border-[#F87171]/25', d: 'bg-[#F87171]', cond: 'Prazo vencido (< 0 dias)', desc: 'Destacado no topo do painel executivo.' },
+            { s: 'Concluído', c: 'text-[#9A9EA6] bg-white/5 border-white/10', d: 'bg-[#9A9EA6]', cond: '100% das etapas finalizadas', desc: 'Mantido no histórico para consulta.' },
+          ].map((i) => (
+            <div key={i.s} className="p-5 sm:px-6 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+              <span className={`inline-flex w-fit items-center gap-2 px-3 py-1 rounded-full border text-xs font-semibold ${i.c}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${i.d}`} />
+                {i.s}
+              </span>
+              <div>
+                <p className="font-mono text-xs text-[#C9CCD2]">{i.cond}</p>
+                <p className="text-xs text-[#8A8F98] mt-0.5">{i.desc}</p>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
 
     {/* FRENTES TÉCNICAS */}
-    <section id="frentes" className="max-w-6xl mx-auto px-6 py-20 scroll-mt-16">
-      <div className="max-w-2xl">
-        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Frentes técnicas atendidas</h2>
-        <p className="mt-3 text-slate-600 leading-relaxed">
-          Navegação segmentada por disciplina para acompanhamento específico de cada área operacional.
-        </p>
+    <section className="max-w-6xl mx-auto px-6 pb-28">
+      <div className="flex items-center gap-4 mb-12">
+        <span className="font-display text-xs text-[#5B93FF]">04</span>
+        <span className="h-px flex-1 bg-[#1E2025]" />
+        <Eyebrow>Frentes técnicas</Eyebrow>
       </div>
 
-      <div className="mt-10 grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-5">
         {[
-          {
-            sigla: '01 · TOPOGRAFIA',
-            titulo: 'Topografia e Cartografia',
-            dot: 'bg-sky-500',
-            escopo: 'Levantamentos planialtimétricos, cadastrais, georreferenciamento de imóveis e apoio topográfico de campo.',
-            itens: ['Implantação de marcos e poligonais', 'Aerofotogrametria e MDT', 'Memoriais descritivos e plantas'],
-          },
-          {
-            sigla: '02 · GEOLOGIA',
-            titulo: 'Geologia e Sondagem',
-            dot: 'bg-amber-500',
-            escopo: 'Campanhas de exploração, acompanhamento de sondagem rotativa/percussiva, mapeamento e modelagem geológica.',
-            itens: ['Locação e acompanhamento de furos', 'Descrição litológica e geotécnica', 'Modelagem 3D e cubagem'],
-          },
-          {
-            sigla: '03 · MEIO AMBIENTE',
-            titulo: 'Estudos Ambientais',
-            dot: 'bg-emerald-500',
-            escopo: 'Elaboração de estudos, licenciamentos, planos de controle ambiental e monitoramento de condicionantes.',
-            itens: ['Plano de Controle Ambiental (PCA)', 'Caracterização florística e inventário', 'Relatórios técnicos de acompanhamento'],
-          },
+          { n: '01', t: 'Topografia', d: 'Planialtimétrico, cadastral, georreferenciamento e apoio de campo.', itens: ['Marcos e poligonais', 'Aerofotogrametria e MDT', 'Memoriais e plantas'] },
+          { n: '02', t: 'Geologia', d: 'Exploração, acompanhamento de sondagem, mapeamento e modelagem.', itens: ['Locação de furos', 'Descrição litológica', 'Modelagem 3D e cubagem'] },
+          { n: '03', t: 'Meio Ambiente', d: 'Estudos, licenciamento, planos de controle e condicionantes.', itens: ['PCA', 'Inventário florístico', 'Relatórios de acompanhamento'] },
         ].map((f) => (
-          <div key={f.sigla} className="bg-card border border-slate-200 rounded-xl p-6 shadow-card flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-semibold text-slate-400">{f.sigla}</span>
-                <span className={`w-2.5 h-2.5 rounded-full ${f.dot}`} />
-              </div>
-              <h3 className="mt-3 text-lg font-semibold text-slate-900">{f.titulo}</h3>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">{f.escopo}</p>
-            </div>
-
-            <ul className="mt-6 pt-4 border-t border-slate-100 space-y-2">
+          <div key={f.n} className="rounded-2xl border border-[#1E2025] bg-[#101114] p-7 hover:border-[#266DF0]/50 transition-colors">
+            <span className="font-display text-xs text-[#5B93FF]">{f.n}</span>
+            <h3 className="font-display mt-3 text-2xl font-bold uppercase tracking-[0.03em] text-white">{f.t}</h3>
+            <p className="mt-3 text-sm text-[#9A9EA6] leading-relaxed">{f.d}</p>
+            <ul className="mt-6 pt-5 border-t border-[#1E2025] space-y-2">
               {f.itens.map((it) => (
-                <li key={it} className="text-xs text-slate-600 flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-slate-400 shrink-0" aria-hidden="true" />
+                <li key={it} className="text-xs text-[#C9CCD2] flex items-center gap-2">
+                  <span className="w-1 h-1 rounded-full bg-[#5B93FF]" aria-hidden="true" />
                   {it}
                 </li>
               ))}
@@ -561,19 +478,18 @@ const Landing = () => (
       </div>
     </section>
 
-    {/* RODAPÉ E ACESSO DIRETO */}
-    <footer className="border-t border-slate-200 bg-card">
-      <div className="max-w-6xl mx-auto px-6 py-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+    {/* RODAPÉ */}
+    <footer className="border-t border-[#1E2025]">
+      <div className="max-w-6xl mx-auto px-6 py-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <p className="text-sm font-bold text-slate-900">
-            Project<span className="text-primary">Sight</span>
+          <p className="font-display text-lg font-bold uppercase tracking-[0.12em] text-white">
+            Project<span className="text-[#5B93FF]">Sight</span>
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">Sistema de Controle de Contratos, Cronogramas e Prazos</p>
+          <p className="text-xs text-[#8A8F98] mt-1">Controle de contratos, cronogramas e prazos</p>
         </div>
-
         <Link
           to="/login"
-          className="h-10 px-5 inline-flex items-center rounded-md bg-primary text-white text-sm font-medium hover:bg-primary-hover transition-colors"
+          className="font-display h-11 px-7 inline-flex items-center rounded-full bg-[#266DF0] text-white text-[12px] font-semibold uppercase tracking-[0.2em] hover:bg-[#1D5AD1] transition-colors"
         >
           Acessar o sistema
         </Link>

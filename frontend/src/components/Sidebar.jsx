@@ -46,7 +46,7 @@ const Sidebar = () => {
         {isExpanded ? (
           <Link to="/" className="flex flex-col min-w-0 focus-visible:outline-none">
             <span className="text-base font-bold tracking-tight text-slate-900 leading-tight">
-              Project<span className="text-primary">Sight</span>
+              Project<span className="text-accent">Sight</span>
             </span>
             <span className="text-[11px] font-medium text-slate-500 tracking-wide">
               Contratos e prazos
@@ -58,7 +58,7 @@ const Sidebar = () => {
             className="text-sm font-bold tracking-tight text-slate-900 focus-visible:outline-none"
             title="ProjectSight"
           >
-            P<span className="text-primary">S</span>
+            P<span className="text-accent">S</span>
           </Link>
         )}
       </div>
@@ -93,7 +93,7 @@ const Sidebar = () => {
                 isExpanded ? 'px-3' : 'justify-center'
               } ${
                 isActive
-                  ? 'bg-primary-light text-primary font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r before:bg-primary'
+                  ? 'bg-[#F4F5F6] text-[#1C1D1F] font-semibold before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-r before:bg-[#266DF0]'
                   : 'text-slate-600 font-medium hover:bg-muted hover:text-slate-900'
               }`
             }

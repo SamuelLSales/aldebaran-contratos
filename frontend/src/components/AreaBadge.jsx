@@ -1,20 +1,20 @@
 import React from 'react';
 
 const AREAS = {
-  topografia: { label: 'Topografia', dot: 'bg-sky-500' },
-  geologia: { label: 'Geologia', dot: 'bg-amber-500' },
-  'meio ambiente': { label: 'Meio Ambiente', dot: 'bg-emerald-500' },
-  administrativo: { label: 'Administrativo', dot: 'bg-slate-400' },
-  todas: { label: 'Multiárea', dot: 'bg-primary' },
+  topografia: { label: 'Topografia', dot: 'bg-[#266DF0]' },
+  geologia: { label: 'Geologia', dot: 'bg-[#36383D]' },
+  'meio ambiente': { label: 'Meio Ambiente', dot: 'bg-[#12A150]' },
+  administrativo: { label: 'Administrativo', dot: 'bg-[#878A92]' },
+  todas: { label: 'Multiárea', dot: 'bg-[#1C1D1F]' },
 };
 
-/** Área de atuação: ponto colorido + texto, sem fundo (discreto em tabelas densas). */
+/** Área de atuação estilo Attio: ponto sutil + texto escuro. */
 const AreaBadge = ({ area }) => {
   const key = String(area || '').toLowerCase().trim();
-  const atual = AREAS[key] || { label: area || '—', dot: 'bg-slate-400' };
+  const atual = AREAS[key] || { label: area || '—', dot: 'bg-[#878A92]' };
   return (
     <span className="inline-flex items-center gap-2 text-sm text-slate-700">
-      <span className={`w-2 h-2 rounded-full ${atual.dot}`} aria-hidden="true" />
+      <span className={`w-1.5 h-1.5 rounded-full ${atual.dot}`} aria-hidden="true" />
       {atual.label}
     </span>
   );

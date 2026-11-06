@@ -106,10 +106,10 @@ const Contratos = () => {
   });
 
   const getAreaIcon = (areaNome) => {
-    if (areaNome === 'Topografia') return <Compass className="w-5 h-5 text-sky-600" />;
-    if (areaNome === 'Geologia') return <Layers className="w-5 h-5 text-amber-600" />;
-    if (areaNome === 'Meio Ambiente') return <TreePine className="w-5 h-5 text-emerald-600" />;
-    return <FolderOpen className="w-5 h-5 text-primary" />;
+    if (areaNome === 'Topografia') return <Compass className="w-5 h-5 text-[#434340]" />;
+    if (areaNome === 'Geologia') return <Layers className="w-5 h-5 text-[#434340]" />;
+    if (areaNome === 'Meio Ambiente') return <TreePine className="w-5 h-5 text-[#434340]" />;
+    return <FolderOpen className="w-5 h-5 text-[#434340]" />;
   };
 
   if (loading) {
@@ -213,13 +213,7 @@ const Contratos = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {contratosFiltrados.map((contrato) => {
                 const diasRestantes = calcularDiasRestantes(contrato.data_entrega_final);
-                
-                const areaStyles = {
-                  Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
-                  Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
-                  'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-                };
-                const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
+                const currentAreaStyle = 'bg-[#F4F5F6] text-[#36383D] border-[#E6E7EA]';
 
                 return (
                   <div 
@@ -236,7 +230,7 @@ const Contratos = () => {
                       </div>
 
                       <h3 
-                        className="font-bold text-slate-900 text-base group-hover:text-primary transition-colors line-clamp-1" 
+                        className="font-bold text-slate-900 text-base group-hover:text-[#266DF0] transition-colors line-clamp-1" 
                         title={contrato.nome_projeto}
                       >
                         {contrato.nome_projeto}
@@ -250,7 +244,7 @@ const Contratos = () => {
                     <div className="space-y-3 my-4 flex-1">
                       {/* Diretor Responsável */}
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-primary text-white text-[9px] font-semibold flex items-center justify-center uppercase">
+                        <div className="w-5 h-5 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] text-[9px] font-semibold flex items-center justify-center uppercase">
                           {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2) : '??'}
                         </div>
                         <span className="text-xs text-slate-600 truncate">
@@ -266,12 +260,12 @@ const Contratos = () => {
                         </div>
                         <div className="font-mono font-semibold">
                           {isConcluido(contrato.status) ? (
-                            <span className="text-emerald-700">Finalizado</span>
+                            <span className="text-[#0E7138]">Finalizado</span>
                           ) : diasRestantes !== null ? (
                             diasRestantes < 0 ? (
-                              <span className="text-rose-700">Atrasado ({Math.abs(diasRestantes)}d)</span>
+                              <span className="text-[#B42318]">Atrasado ({Math.abs(diasRestantes)}d)</span>
                             ) : diasRestantes <= 7 ? (
-                              <span className="text-amber-700">{diasRestantes} dias</span>
+                              <span className="text-[#945300]">{diasRestantes} dias</span>
                             ) : (
                               <span className="text-slate-700">{diasRestantes} dias</span>
                             )

@@ -67,7 +67,7 @@ const Header = () => {
           aria-expanded={menuAberto}
           className="flex items-center gap-2.5 h-10 pl-1.5 pr-2.5 rounded-md hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
         >
-          <span className="w-8 h-8 rounded-full bg-primary-light text-primary flex items-center justify-center text-xs font-semibold">
+          <span className="w-8 h-8 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] flex items-center justify-center text-xs font-semibold">
             {iniciais(nome)}
           </span>
           <span className="hidden sm:flex flex-col items-start leading-tight">

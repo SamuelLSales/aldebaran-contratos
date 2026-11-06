@@ -44,6 +44,7 @@ import {
 import StatusBadge from '../components/StatusBadge';
 import ProgressBar from '../components/ProgressBar';
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import Modal from '../components/common/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
@@ -408,12 +409,7 @@ const DetalheContrato = () => {
   const totalEtapasCount = todasEtapas.length;
   const etapasConcluidasCount = todasEtapas.filter(e => (e.progresso || 0) >= 1.0).length;
 
-  const areaStyles = {
-    Topografia: 'bg-sky-50 text-sky-700 border-sky-200/60',
-    Geologia: 'bg-amber-50 text-amber-800 border-amber-200/60',
-    'Meio Ambiente': 'bg-emerald-50 text-emerald-800 border-emerald-200/60',
-  };
-  const currentAreaStyle = areaStyles[contrato.area] || 'bg-slate-100 text-slate-700 border-slate-200';
+  const currentAreaStyle = 'bg-[#f4f1ef] text-[#2b2b27] border-[#e9e5e0]';
 
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-[1500px] mx-auto animate-fade-in text-slate-900">
@@ -435,7 +431,7 @@ const DetalheContrato = () => {
               onClick={exportarCSV}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
               Exportar CSV
             </button>
 
@@ -451,7 +447,7 @@ const DetalheContrato = () => {
 
                 <button
                   onClick={handleExcluirContrato}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFF0EE] text-[#B42318] hover:bg-[#FFE0DC] border border-[#FFD4CE] rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                   title="Excluir Contrato"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -575,7 +571,7 @@ const DetalheContrato = () => {
                                 {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                               </span>
                               
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase bg-primary text-white shrink-0">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase bg-[#2b2b27] text-white shrink-0">
                                 Fase {fase.ordem}
                               </span>
 
@@ -593,7 +589,7 @@ const DetalheContrato = () => {
                               <div className="hidden sm:flex items-center gap-2 w-28">
                                 <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                   <div 
-                                    className={`h-full rounded-full transition-all duration-300 ${progressoFase === 100 ? 'bg-emerald-500' : 'bg-primary'}`}
+                                    className="h-full rounded-full transition-all duration-300 bg-[#2b2b27]"
                                     style={{ width: `${progressoFase}%` }}
                                   ></div>
                                 </div>
@@ -608,7 +604,7 @@ const DetalheContrato = () => {
                                     onClick={() => abrirModalCriarEtapa(fase.id)}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-md text-xs font-semibold shadow-2xs transition cursor-pointer"
                                   >
-                                    <Plus className="w-3 h-3 text-primary" />
+                                    <Plus className="w-3 h-3 text-[#2b2b27]" />
                                     Nova Etapa
                                   </button>
                                   <button
@@ -653,11 +649,11 @@ const DetalheContrato = () => {
                                           onClick={() => handleProgressoSlider(etapa, isDone ? 0 : 1.0)}
                                           title={isDone ? "Desfazer (marcar como pendente)" : "Marcar como concluída"}
                                           className={`mt-0.5 shrink-0 transition-colors cursor-pointer ${
-                                            isDone ? 'text-emerald-600 hover:text-emerald-700' : 'text-slate-300 hover:text-slate-500'
+                                            isDone ? 'text-[#2b2b27] hover:text-black' : 'text-slate-300 hover:text-slate-500'
                                           }`}
                                         >
                                           {isDone ? (
-                                            <CheckCircle2 className="w-5 h-5 fill-emerald-50" />
+                                            <CheckCircle2 className="w-5 h-5 fill-[#f4f1ef]" />
                                           ) : (
                                             <Circle className="w-5 h-5" />
                                           )}
@@ -669,7 +665,7 @@ const DetalheContrato = () => {
                                               {etapa.nome_tarefa}
                                             </h4>
                                             {isDone && (
-                                              <span className="inline-flex px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                              <span className="inline-flex px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-[#f4f1ef] text-[#434340] border border-[#e9e5e0]">
                                                 Concluído
                                               </span>
                                             )}
@@ -684,7 +680,7 @@ const DetalheContrato = () => {
                                           {/* Metadados da Tarefa */}
                                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 pt-0.5">
                                             <div className="flex items-center gap-1.5 font-medium">
-                                              <div className="w-4 h-4 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[8px] uppercase">
+                                              <div className="w-4 h-4 rounded-full bg-[#f4f1ef] text-[#161614] border border-[#e9e5e0] flex items-center justify-center font-bold text-[8px] uppercase">
                                                 {obterIniciais(etapa.responsavel)}
                                               </div>
                                               <span className="text-slate-700">{etapa.responsavel}</span>
@@ -811,18 +807,16 @@ const DetalheContrato = () => {
           <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900">Progresso Geral</span>
-              <span className="text-xs font-mono font-bold text-primary">{progressoGeral}%</span>
+              <span className="text-xs font-mono font-bold text-slate-900">{progressoGeral}%</span>
             </div>
 
             {/* Barra de Progresso Fina */}
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
                   contrato.status === 'atrasado'
-                    ? 'bg-rose-500'
-                    : contrato.status === 'atencao'
-                      ? 'bg-amber-500'
-                      : 'bg-emerald-500'
+                    ? 'bg-[#E5392D]'
+                    : 'bg-[#266DF0]'
                 }`}
                 style={{ width: `${progressoGeral}%` }}
               ></div>
@@ -848,12 +842,12 @@ const DetalheContrato = () => {
                 <span className="text-slate-500">Situação:</span>
                 <div>
                   {contrato.status === 'concluido' ? (
-                    <span className="text-emerald-700 font-semibold font-mono">Finalizado</span>
+                    <span className="text-[#0E7138] font-semibold font-mono">Finalizado</span>
                   ) : diasRestantes !== null ? (
                     diasRestantes < 0 ? (
-                      <span className="text-rose-700 font-semibold font-mono">Atrasado ({Math.abs(diasRestantes)}d)</span>
+                      <span className="text-[#B42318] font-semibold font-mono">Atrasado ({Math.abs(diasRestantes)}d)</span>
                     ) : diasRestantes <= 7 ? (
-                      <span className="text-amber-700 font-semibold font-mono">Faltam {diasRestantes} dias</span>
+                      <span className="text-[#945300] font-semibold font-mono">Faltam {diasRestantes} dias</span>
                     ) : (
                       <span className="text-slate-700 font-medium font-mono">Faltam {diasRestantes} dias</span>
                     )
@@ -880,7 +874,7 @@ const DetalheContrato = () => {
               <div>
                 <span className="text-slate-400 block text-[11px] font-medium">Diretor Responsável (RT)</span>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[9px] uppercase">
+                  <div className="w-5 h-5 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] flex items-center justify-center font-bold text-[9px] uppercase">
                     {obterIniciais(contrato.diretor_projeto)}
                   </div>
                   <span className="font-semibold text-slate-800">{contrato.diretor_projeto}</span>
@@ -938,21 +932,12 @@ const DetalheContrato = () => {
 
       {/* 1. MODAL EDITAR CONTRATO */}
       {modalContratoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-2xl overflow-hidden shadow-xl">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Edit3 className="w-4 h-4 text-primary" />
-                Editar Informações Gerais do Contrato
-              </h3>
-              <button 
-                onClick={() => setModalContratoAberto(false)}
-                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+        <Modal
+          title="Editar Informações Gerais do Contrato"
+          icon={Edit3}
+          maxWidth="max-w-2xl"
+          onClose={() => setModalContratoAberto(false)}
+        >
             <form onSubmit={handleSalvarContrato} className="p-5 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -1086,27 +1071,17 @@ const DetalheContrato = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* 2. MODAL ADICIONAR / EDITAR FASE */}
       {modalFaseAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-md overflow-hidden shadow-xl">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                {faseForm.id ? <Edit3 className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
-                {faseForm.id ? 'Editar Fase do Cronograma' : 'Nova Fase do Cronograma'}
-              </h3>
-              <button 
-                onClick={() => setModalFaseAberto(false)}
-                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+        <Modal
+          title={faseForm.id ? 'Editar Fase do Cronograma' : 'Nova Fase do Cronograma'}
+          icon={faseForm.id ? Edit3 : Plus}
+          maxWidth="max-w-md"
+          onClose={() => setModalFaseAberto(false)}
+        >
             <form onSubmit={handleSalvarFase} className="p-5 space-y-4">
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">Nome da Fase *</label>
@@ -1146,27 +1121,17 @@ const DetalheContrato = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* 3. MODAL ADICIONAR / EDITAR ETAPA */}
       {modalEtapaAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-2xs p-4 animate-fade-in">
-          <div className="bg-white border border-slate-200 rounded-xl w-full max-w-xl overflow-hidden shadow-xl">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                {etapaForm.id ? <Edit3 className="w-4 h-4 text-primary" /> : <Plus className="w-4 h-4 text-primary" />}
-                {etapaForm.id ? 'Editar Etapa / Tarefa' : 'Adicionar Etapa / Tarefa'}
-              </h3>
-              <button 
-                onClick={() => setModalEtapaAberto(false)}
-                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+        <Modal
+          title={etapaForm.id ? 'Editar Etapa / Tarefa' : 'Adicionar Etapa / Tarefa'}
+          icon={etapaForm.id ? Edit3 : Plus}
+          maxWidth="max-w-xl"
+          onClose={() => setModalEtapaAberto(false)}
+        >
             <form onSubmit={handleSalvarEtapa} className="p-5 space-y-4">
               <div>
                 <label className="text-xs font-semibold text-slate-700 block mb-1">Nome da Tarefa *</label>
@@ -1274,8 +1239,7 @@ const DetalheContrato = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* CONFIRMAÇÃO DE EXCLUSÃO */}

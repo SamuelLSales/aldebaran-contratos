@@ -4,68 +4,84 @@
 
 @layer base {
   /*
-   * Paleta ProjectSight — valores em canais RGB ("R G B") para suportar opacidade no Tailwind.
-   * Para mudar a identidade visual, edite apenas este bloco.
+   * Paleta Attio.com — Editorial B2B SaaS
+   * Primario em grafite quase-preto (#1C1D1F), destaque interativo em Azul Attio (#266DF0),
+   * superficies alvas (#FAFAFB / #FFFFFF) e bordas de precisao (#E6E7EA).
    */
   :root {
-    /* Superficies */
-    --background: 248 250 252;        /* #F8FAFC  fundo da aplicacao */
-    --foreground: 15 23 42;           /* #0F172A  texto principal */
+    --radius: 0.5rem;
+
+    /* Superficies Attio */
+    --background: 250 250 251;        /* #FAFAFB  fundo da aplicacao */
+    --foreground: 28 29 31;           /* #1C1D1F  texto principal Attio Ink */
     --card: 255 255 255;              /* #FFFFFF  cards, tabelas, modais */
-    --muted: 241 245 249;             /* #F1F5F9  cabecalhos de tabela, inputs */
-    --muted-foreground: 71 85 105;    /* #475569  texto secundario */
-    --border: 226 232 240;            /* #E2E8F0 */
+    --card-foreground: 28 29 31;      /* #1C1D1F */
+    --popover: 255 255 255;           /* #FFFFFF */
+    --popover-foreground: 28 29 31;   /* #1C1D1F */
+    --muted: 244 245 246;             /* #F4F5F6  cabecalhos de tabela, chips neutros */
+    --muted-foreground: 110 114 122;  /* #6E727A  texto secundario */
+    --border: 230 231 234;            /* #E6E7EA  hairline estrutural Attio */
+    --input: 214 216 221;             /* #D6D8DD */
 
-    /* Marca */
-    --primary: 15 62 84;              /* #0F3E54  azul-petroleo */
-    --primary-hover: 10 45 62;        /* #0A2D3E */
-    --primary-light: 235 243 247;     /* #EBF3F7 */
-    --primary-foreground: 255 255 255;
+    /* Primario — Attio Obsidian (#1C1D1F) */
+    --primary: 28 29 31;              /* #1C1D1F  botoes principais */
+    --primary-hover: 47 48 51;        /* #2F3033 */
+    --primary-light: 244 245 246;     /* #F4F5F6 */
+    --primary-foreground: 255 255 255;/* #FFFFFF */
 
-    /* Acao / foco / links */
-    --accent: 2 132 199;              /* #0284C7 */
-    --accent-hover: 3 105 161;        /* #0369A1 */
-    --accent-light: 224 242 254;      /* #E0F2FE */
-    --ring: 2 132 199;
+    /* Secundario — Cinza Escuro Attio (#36383D) */
+    --secondary: 54 56 61;            /* #36383D */
+    --secondary-hover: 28 29 31;      /* #1C1D1F */
+    --secondary-foreground: 255 255 255;
 
-    --destructive: 220 38 38;         /* #DC2626 */
-    --destructive-light: 254 226 226; /* #FEE2E2 */
+    /* Acao / Foco / Destaque — Attio Royal Blue (#266DF0) */
+    --accent: 38 109 240;             /* #266DF0  azul Attio */
+    --accent-hover: 29 90 209;        /* #1D5AD1 */
+    --accent-light: 238 244 255;      /* #EEF4FF */
+    --accent-foreground: 28 29 31;
+    --ring: 38 109 240;               /* #266DF0 */
 
-    /* Status de prazo — somente para prazo/progresso */
-    --status-success: 22 163 74;      /* #16A34A */
-    --status-warning: 217 119 6;      /* #D97706 */
-    --status-danger: 220 38 38;       /* #DC2626 */
-    --status-done: 100 116 139;       /* #64748B */
+    /* Destrutivo — Attio Coral Red (#E5392D) */
+    --destructive: 255 240 238;       /* #FFF0EE  fundo suave destrutivo */
+    --destructive-hover: 255 224 220; /* #FFE0DC */
+    --destructive-light: 255 240 238; /* #FFF0EE */
+    --destructive-foreground: 180 35 24; /* #B42318  texto vermelho escuro */
+
+    /* Status de prazo Attio */
+    --status-success: 18 161 80;      /* #12A150 */
+    --status-warning: 224 134 0;      /* #E08600 */
+    --status-danger: 229 57 45;       /* #E5392D */
+    --status-done: 107 111 118;       /* #6B6F76 */
 
     /* Legado */
-    --brand-primary: #0F3E54;
-    --brand-primary-hover: #0A2D3E;
-    --brand-primary-light: #EBF3F7;
-    --brand-accent: #0284C7;
-    --brand-accent-hover: #0369A1;
-    --brand-accent-light: #E0F2FE;
+    --brand-primary: #1C1D1F;
+    --brand-primary-hover: #2F3033;
+    --brand-primary-light: #F4F5F6;
+    --brand-accent: #266DF0;
+    --brand-accent-hover: #1D5AD1;
+    --brand-accent-light: #EEF4FF;
 
-    --bg-app: #F8FAFC;
+    --bg-app: #FAFAFB;
     --bg-surface: #FFFFFF;
-    --bg-subtle: #F1F5F9;
-    --bg-muted: #E2E8F0;
+    --bg-subtle: #F4F5F6;
+    --bg-muted: #E6E7EA;
 
-    --border-subtle: #E2E8F0;
-    --border-hover: #CBD5E1;
-    --border-focus: #0284C7;
+    --border-subtle: #E6E7EA;
+    --border-hover: #D6D8DD;
+    --border-focus: #266DF0;
 
-    --text-primary: #0F172A;
-    --text-secondary: #475569;
-    --text-muted: #94A3B8;
+    --text-primary: #1C1D1F;
+    --text-secondary: #50535A;
+    --text-muted: #878A92;
 
-    --status-success-bg: #DCFCE7;
-    --status-success-text: #166534;
-    --status-warning-bg: #FEF3C7;
-    --status-warning-text: #92400E;
-    --status-danger-bg: #FEE2E2;
-    --status-danger-text: #991B1B;
-    --status-done-bg: #F1F5F9;
-    --status-done-text: #334155;
+    --status-success-bg: #EAFBF1;
+    --status-success-text: #0E7138;
+    --status-warning-bg: #FFF6E5;
+    --status-warning-text: #945300;
+    --status-danger-bg: #FFF0EE;
+    --status-danger-text: #B42318;
+    --status-done-bg: #F4F5F6;
+    --status-done-text: #50535A;
   }
 }
 
@@ -78,9 +94,14 @@
   .hover\:bg-primary-hover:hover, .hover\:bg-brand-primary-hover:hover { background-color: rgb(var(--primary-hover)); }
   .active\:bg-primary-hover:active { background-color: rgb(var(--primary-hover)); }
   .bg-primary-light, .bg-brand-primary-light { background-color: rgb(var(--primary-light)); }
+  .bg-secondary { background-color: rgb(var(--secondary)); }
+  .hover\:bg-secondary-hover:hover { background-color: rgb(var(--secondary-hover)); }
   .bg-accent, .bg-brand-accent { background-color: rgb(var(--accent)); }
   .hover\:bg-accent-hover:hover, .hover\:bg-brand-accent-hover:hover { background-color: rgb(var(--accent-hover)); }
   .bg-accent-light, .bg-brand-accent-light { background-color: rgb(var(--accent-light)); }
+  .bg-destructive { background-color: rgb(var(--destructive)); }
+  .hover\:bg-destructive-hover:hover { background-color: rgb(var(--destructive-hover)); }
+  .bg-destructive-light { background-color: rgb(var(--destructive-light)); }
   .bg-status-success { background-color: rgb(var(--status-success)); }
   .bg-status-warning { background-color: rgb(var(--status-warning)); }
   .bg-status-danger { background-color: rgb(var(--status-danger)); }
@@ -90,15 +111,31 @@
   .text-muted-foreground { color: rgb(var(--muted-foreground)); }
   .text-primary, .text-brand-primary { color: rgb(var(--primary)); }
   .text-primary-foreground { color: rgb(var(--primary-foreground)); }
+  .text-secondary { color: rgb(var(--secondary)); }
+  .text-secondary-foreground { color: rgb(var(--secondary-foreground)); }
   .text-accent, .text-brand-accent { color: rgb(var(--accent)); }
   .hover\:text-accent-hover:hover { color: rgb(var(--accent-hover)); }
+  .text-destructive { color: rgb(var(--destructive)); }
+  .text-destructive-foreground { color: rgb(var(--destructive-foreground)); }
   .text-status-success { color: rgb(var(--status-success)); }
   .text-status-warning { color: rgb(var(--status-warning)); }
   .text-status-danger { color: rgb(var(--status-danger)); }
   .text-status-done { color: rgb(var(--status-done)); }
 
   .border-primary { border-color: rgb(var(--primary)); }
-  .border-accent, .focus\:border-accent:focus, .focus\:border-brand-accent:focus { border-color: rgb(var(--accent)); }
+  .border-destructive { border-color: rgb(var(--destructive)); }
+  .border-accent, .focus\:border-accent:focus, .focus\:border-brand-accent:focus { border-color: rgb(var(--ring)); }
+
+  /* Harmoniza os utilitarios slate com a escala de neutros frios e limpos do Attio (#FAFAFB / #F4F5F6 / #E6E7EA) */
+  .bg-slate-50, .bg-slate-50\/80, .bg-slate-50\/70, .bg-slate-50\/50 { background-color: #F4F5F6 !important; }
+  .bg-slate-100 { background-color: #ECEEF0 !important; }
+  .border-slate-200, .border-slate-200\/90, .border-slate-200\/80, .border-slate-200\/70, .border-slate-100 { border-color: #E6E7EA !important; }
+  .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+  .divide-slate-200 > :not([hidden]) ~ :not([hidden]) { border-color: #E6E7EA !important; }
+  .text-slate-900 { color: #1C1D1F !important; }
+  .text-slate-800, .text-slate-700 { color: #36383D !important; }
+  .text-slate-600, .text-slate-500 { color: #6E727A !important; }
+  .text-slate-400 { color: #878A92 !important; }
 }
 
 body {
@@ -117,6 +154,14 @@ input:-webkit-autofill:focus {
   -webkit-text-fill-color: #0F172A;
   -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Autofill no tema escuro (login) */
+.auth-dark input:-webkit-autofill,
+.auth-dark input:-webkit-autofill:hover,
+.auth-dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #F2F3F5;
+  -webkit-box-shadow: 0 0 0px 1000px #0B0C0E inset;
 }
 
 /* Custom Scrollbar for professional corporate feel */
@@ -146,7 +191,7 @@ input:-webkit-autofill:focus {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: none;
   }
 }
 

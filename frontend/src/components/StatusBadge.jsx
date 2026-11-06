@@ -1,10 +1,10 @@
 import React from 'react';
 
 const STATUS = {
-  no_prazo: { label: 'No prazo', box: 'bg-emerald-50 text-emerald-800', dot: 'bg-status-success' },
-  atencao: { label: 'Atenção', box: 'bg-amber-50 text-amber-800', dot: 'bg-status-warning' },
-  atrasado: { label: 'Atrasado', box: 'bg-red-50 text-red-800', dot: 'bg-status-danger' },
-  concluido: { label: 'Concluído', box: 'bg-slate-100 text-slate-700', dot: 'bg-status-done' },
+  no_prazo: { label: 'No prazo', box: 'bg-[#EAFBF1] text-[#0E7138] border border-[#C6F0D8]', dot: 'bg-[#12A150]' },
+  atencao: { label: 'Atenção', box: 'bg-[#FFF6E5] text-[#945300] border border-[#FDE2B3]', dot: 'bg-[#E08600]' },
+  atrasado: { label: 'Atrasado', box: 'bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE]', dot: 'bg-[#E5392D]' },
+  concluido: { label: 'Concluído', box: 'bg-[#F4F5F6] text-[#50535A] border border-[#E6E7EA]', dot: 'bg-[#6B6F76]' },
 };
 
 const normalizar = (status) => {

@@ -31,6 +31,11 @@ export default {
           light: token('primary-light'),
           foreground: token('primary-foreground'),
         },
+        secondary: {
+          DEFAULT: token('secondary'),
+          hover: token('secondary-hover'),
+          foreground: token('secondary-foreground'),
+        },
         accent: {
           DEFAULT: token('accent'),
           hover: token('accent-hover'),
@@ -38,7 +43,9 @@ export default {
         },
         destructive: {
           DEFAULT: token('destructive'),
+          hover: token('destructive-hover'),
           light: token('destructive-light'),
+          foreground: token('destructive-foreground'),
         },
         // Status de prazo (usar SOMENTE para prazo/progresso)
         status: {
@@ -58,18 +65,18 @@ export default {
           'accent-light': token('accent-light'),
         },
         aldebaran: {
-          dark0: '#F1F5F9',
-          dark: '#F8FAFC',
+          dark0: '#F4F5F6',
+          dark: '#FAFAFB',
           gray: '#FFFFFF',
-          border: '#E2E8F0',
-          gold: '#0F3E54',
-          goldDark: '#0A2D3E',
-          orange: '#0284C7',
+          border: '#E6E7EA',
+          gold: '#1C1D1F',
+          goldDark: '#2F3033',
+          orange: '#266DF0',
         },
         theme: {
-          strong: '#0F172A',
-          normal: '#334155',
-          weak: '#64748B',
+          strong: '#1C1D1F',
+          normal: '#36383D',
+          weak: '#6E727A',
         }
       },
       borderWidth: { 3: '3px' },
@@ -79,7 +86,8 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        title: ['Libre Franklin', 'Inter', 'sans-serif'],
+        title: ['Outfit', 'Inter', 'sans-serif'],
+        display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
       },
       boxShadow: {
