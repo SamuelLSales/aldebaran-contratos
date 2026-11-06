@@ -5,20 +5,15 @@ import {
   AlertCircle,
   Clock,
   User,
-  Calendar,
-  ArrowRight,
   Search,
   AlertTriangle,
   CheckCircle,
   FolderOpen,
   FileSpreadsheet,
   Plus,
-  Layers,
-  ChevronRight,
-  BarChart3
+  ArrowUpRight
 } from 'lucide-react';
 import { getDashboardData, getContratos, exportarCSV } from '../services/api';
-import StatusBadge from '../components/StatusBadge';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -239,13 +234,16 @@ const Dashboard = () => {
   return (
     <div className="p-6 lg:p-8 space-y-6 max-w-[1500px] mx-auto animate-fade-in text-slate-900">
 
-      {/* CABEÇALHO EXECUTIVO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      {/* CABEÇALHO EDITORIAL CLARO */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-slate-200/90">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-slate-400 block mb-2">
+            .01 / Visão Executiva
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
             Controle Operacional de Contratos
           </h1>
-          <p className="text-slate-500 text-xs mt-1">
+          <p className="text-slate-500 text-xs mt-1.5">
             Monitoramento de contratos, cronogramas e entregas — Topografia, Geologia e Meio Ambiente
           </p>
         </div>
@@ -253,14 +251,14 @@ const Dashboard = () => {
         <div className="flex items-center gap-2.5">
           <button
             onClick={exportarCSV}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-slate-700 hover:text-slate-900 border border-slate-200 hover:border-slate-300 rounded-lg text-xs font-medium transition-colors cursor-pointer"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-slate-500" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-slate-400" />
             Exportar CSV
           </button>
           <button
             onClick={() => navigate('/contratos/novo')}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1C1D1F] hover:bg-[#2F3033] text-white rounded-lg text-xs font-medium transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             Novo Contrato
@@ -269,28 +267,28 @@ const Dashboard = () => {
       </div>
 
       {/* NAVEGAÇÃO POR ABAS */}
-      <div className="flex border-b border-slate-200 gap-8">
+      <div className="flex border-b border-slate-200/90 gap-8">
         <button
           onClick={() => setAbaAtiva('geral')}
-          className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative cursor-pointer ${
+          className={`pb-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors relative cursor-pointer ${
             abaAtiva === 'geral'
-              ? 'text-[#1C1D1F] border-b-2 border-[#266DF0]'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-[#1C1D1F] border-b-2 border-[#1C1D1F]'
+              : 'text-slate-400 hover:text-slate-700'
           }`}
         >
           Visão Geral & Contratos
         </button>
         <button
           onClick={() => setAbaAtiva('gargalos')}
-          className={`pb-3 text-xs font-semibold uppercase tracking-wider transition-colors relative flex items-center gap-2 cursor-pointer ${
+          className={`pb-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors relative flex items-center gap-2 cursor-pointer ${
             abaAtiva === 'gargalos'
-              ? 'text-[#1C1D1F] border-b-2 border-[#266DF0]'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-[#1C1D1F] border-b-2 border-[#1C1D1F]'
+              : 'text-slate-400 hover:text-slate-700'
           }`}
         >
           Análise de Prazos & Gargalos
           {etapasAtrasadas.length > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE]">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#FFF0EE] text-[#B42318]">
               {etapasAtrasadas.length}
             </span>
           )}
@@ -299,7 +297,7 @@ const Dashboard = () => {
 
       {/* ERROS DE CONEXÃO */}
       {error && (
-        <div className="bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] rounded-xl p-4 flex items-start gap-3">
+        <div className="bg-[#FFF0EE] text-[#B42318] rounded-xl p-4 flex items-start gap-3">
           <AlertCircle className="text-[#E5392D] w-5 h-5 shrink-0 mt-0.5" />
           <div>
             <h4 className="font-semibold text-sm">Problema com o servidor</h4>
@@ -312,69 +310,73 @@ const Dashboard = () => {
       {abaAtiva === 'geral' && (
         <div className="space-y-6">
 
-          {/* 4 CARDS DE MÉTRICAS EXECUTIVAS (Estilo Attio) */}
+          {/* 4 CARDS DE MÉTRICAS — ESTILO EDITORIAL CLARO (SEM BORDAS NOS ÍCONES) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Total */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Contratos Ativos</span>
-                <div className="w-8 h-8 rounded-lg bg-[#F4F5F6] border border-[#E6E7EA] flex items-center justify-center text-[#36383D]">
-                  <Briefcase className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.01</span>
+                  <span className="text-xs font-medium text-slate-500">Contratos Ativos</span>
                 </div>
+                <Briefcase className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-900 tabular-nums">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums tracking-tight">
                   {contratosEmAberto.length}
                 </span>
-                <span className="text-xs text-slate-500">em andamento</span>
+                <span className="text-xs text-slate-400">em andamento</span>
               </div>
             </div>
 
             {/* Card 2: No Prazo */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">No Prazo</span>
-                <div className="w-8 h-8 rounded-lg bg-[#EAFBF1] border border-[#C6F0D8] text-[#0E7138] flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.02</span>
+                  <span className="text-xs font-medium text-slate-500">No Prazo</span>
                 </div>
+                <CheckCircle className="w-4 h-4 text-[#12A150]" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-900 tabular-nums">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums tracking-tight">
                   {stats.contratos_no_prazo || 0}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">cronograma em dia</span>
+                <span className="text-xs text-slate-400">cronograma em dia</span>
               </div>
             </div>
 
             {/* Card 3: Atenção */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Atenção (≤ 7 dias)</span>
-                <div className="w-8 h-8 rounded-lg bg-[#FFF6E5] border border-[#FDE2B3] text-[#945300] flex items-center justify-center">
-                  <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.03</span>
+                  <span className="text-xs font-medium text-slate-500">Atenção (≤ 7 dias)</span>
                 </div>
+                <Clock className="w-4 h-4 text-[#D97706]" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-900 tabular-nums">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums tracking-tight">
                   {stats.contratos_atencao || 0}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">vence em breve</span>
+                <span className="text-xs text-slate-400">vence em breve</span>
               </div>
             </div>
 
             {/* Card 4: Atrasados */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs hover:shadow-card transition-shadow">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Com Atraso</span>
-                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.04</span>
+                  <span className="text-xs font-medium text-slate-500">Com Atraso</span>
                 </div>
+                <AlertTriangle className="w-4 h-4 text-[#E5392D]" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-slate-900 tabular-nums">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums tracking-tight">
                   {stats.contratos_atrasados || 0}
                 </span>
-                <span className={`text-xs font-medium ${(stats.contratos_atrasados || 0) > 0 ? 'text-[#B42318] font-semibold' : 'text-slate-500'}`}>
+                <span className={`text-xs ${(stats.contratos_atrasados || 0) > 0 ? 'text-[#B42318] font-medium' : 'text-slate-400'}`}>
                   requer ação
                 </span>
               </div>
@@ -382,14 +384,17 @@ const Dashboard = () => {
           </div>
 
           {/* TABELA DE CONTRATOS EM ABERTO */}
-          <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
+          <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden">
             
             {/* Barra de Filtros */}
-            <div className="p-4 sm:p-5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
+            <div className="p-5 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
               <div>
-                <h3 className="text-base font-bold text-slate-900">
-                  Projetos em Andamento
-                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">.02</span>
+                  <h3 className="font-display text-base font-semibold text-slate-900 tracking-tight">
+                    Projetos em Andamento
+                  </h3>
+                </div>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Acompanhamento de prazos de entrega e medições
                 </p>
@@ -404,7 +409,7 @@ const Dashboard = () => {
                     value={termoBusca}
                     onChange={(e) => setTermoBusca(e.target.value)}
                     placeholder="Filtrar por projeto ou cliente..."
-                    className="w-[200px] sm:w-[260px] pl-9 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                    className="w-[200px] sm:w-[260px] pl-9 pr-3 py-1.5 bg-slate-50/70 hover:bg-slate-100/60 focus:bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-400 transition-all"
                   />
                 </div>
 
@@ -412,7 +417,7 @@ const Dashboard = () => {
                 <select
                   value={areaFiltro}
                   onChange={(e) => setAreaFiltro(e.target.value)}
-                  className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-300 text-slate-700 text-xs rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
+                  className="px-3 py-1.5 bg-slate-50/70 hover:bg-slate-100/60 border border-slate-200 text-slate-700 text-xs rounded-lg focus:outline-none focus:border-slate-400 cursor-pointer transition-all"
                 >
                   <option value="todas">Todas as Áreas</option>
                   <option value="topografia">Topografia</option>
@@ -425,29 +430,30 @@ const Dashboard = () => {
             {/* Conteúdo da Tabela */}
             {contratosEmAberto.length === 0 ? (
               <div className="text-center py-16 px-4 text-slate-500 text-sm">
-                <FolderOpen className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <FolderOpen className="w-7 h-7 text-slate-300 mx-auto mb-2" strokeWidth={1.5} />
                 Nenhum contrato em aberto localizado com os filtros aplicados.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
-                      <th className="py-3 px-4">Projeto / Cliente</th>
-                      <th className="py-3 px-4">Área</th>
-                      <th className="py-3 px-4">Diretor Responsável</th>
-                      <th className="py-3 px-4">Prazo de Entrega</th>
-                      <th className="py-3 px-4">Dias Restantes</th>
-                      <th className="py-3 px-4">Progresso Geral</th>
-                      <th className="py-3 px-4 text-right">Ação</th>
+                    <tr className="border-b border-slate-200/80 font-mono text-[10px] uppercase font-medium text-slate-400 tracking-[0.16em]">
+                      <th className="py-3.5 pl-5 pr-3 w-10">#</th>
+                      <th className="py-3.5 px-4">Projeto / Cliente</th>
+                      <th className="py-3.5 px-4">Área</th>
+                      <th className="py-3.5 px-4">Diretor Responsável</th>
+                      <th className="py-3.5 px-4">Entrega</th>
+                      <th className="py-3.5 px-4">Prazo</th>
+                      <th className="py-3.5 px-4">Progresso</th>
+                      <th className="py-3.5 pl-3 pr-5 text-right"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
-                    {contratosEmAberto.map(contrato => {
+                    {contratosEmAberto.map((contrato, index) => {
                       const progresso = obterProgressoContrato(contrato);
                       const diasRestantes = calcularDiasRestantes(contrato.data_entrega_final);
 
-                      // Estilização do badge de dias restantes
+                      // Indicador editorial limpo de dias restantes (sem borda pesada)
                       let diasBadge = (
                         <span className="text-slate-400 font-mono text-xs">-</span>
                       );
@@ -455,37 +461,41 @@ const Dashboard = () => {
                       if (diasRestantes !== null) {
                         if (diasRestantes < 0) {
                           diasBadge = (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] font-mono">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#B42318] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#E5392D]" />
                               Atrasado há {Math.abs(diasRestantes)}d
                             </span>
                           );
                         } else if (diasRestantes <= 7) {
                           diasBadge = (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF6E5] text-[#945300] border border-[#FDE2B3] font-mono">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#945300] font-mono">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
                               {diasRestantes} dias
                             </span>
                           );
                         } else {
                           diasBadge = (
-                            <span className="text-slate-700 font-medium font-mono text-xs">
+                            <span className="text-slate-600 font-mono text-xs">
                               {diasRestantes} dias
                             </span>
                           );
                         }
                       }
 
-                      // Badge de área estilo Attio
-                      const currentAreaStyle = 'bg-[#F4F5F6] text-[#36383D] border-[#E6E7EA]';
-
                       return (
                         <tr
                           key={contrato.id}
                           onClick={() => navigate(`/contratos/${contrato.id}`)}
-                          className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
+                          className="hover:bg-slate-50/70 cursor-pointer transition-colors group"
                         >
+                          {/* Índice Editorial */}
+                          <td className="py-4 pl-5 pr-3 font-mono text-[11px] text-slate-300 group-hover:text-slate-500 transition-colors">
+                            {String(index + 1).padStart(2, '0')}
+                          </td>
+
                           {/* Projeto e Cliente */}
-                          <td className="py-3.5 px-4">
-                            <div className="font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
+                          <td className="py-4 px-4">
+                            <div className="font-display font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
                               {contrato.nome_projeto}
                             </div>
                             <div className="text-xs text-slate-500 mt-0.5">
@@ -493,58 +503,54 @@ const Dashboard = () => {
                             </div>
                           </td>
 
-                          {/* Área */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <span className={`inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${currentAreaStyle}`}>
+                          {/* Área (sem pílula com borda de IA) */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                               {contrato.area}
                             </span>
                           </td>
 
-                          {/* Diretor Responsável */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-[#EEF4FF] text-[#266DF0] border border-[#D4E2FF] text-[10px] font-semibold flex items-center justify-center uppercase">
-                                {contrato.diretor_projeto ? contrato.diretor_projeto.substring(0, 2) : '??'}
-                              </div>
-                              <span className="text-xs font-medium text-slate-700">
-                                {contrato.diretor_projeto}
-                              </span>
-                            </div>
+                          {/* Diretor Responsável (tipográfico limpo, sem bolinha colorida com borda) */}
+                          <td className="py-4 px-4 whitespace-nowrap">
+                            <span className="text-xs font-medium text-slate-700">
+                              {contrato.diretor_projeto || '—'}
+                            </span>
                           </td>
 
                           {/* Entrega Prevista */}
-                          <td className="py-3.5 px-4 text-xs font-mono text-slate-600 whitespace-nowrap">
+                          <td className="py-4 px-4 text-xs font-mono text-slate-500 whitespace-nowrap">
                             {formatarData(contrato.data_entrega_final)}
                           </td>
 
                           {/* Dias Restantes */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-4 px-4 whitespace-nowrap">
                             {diasBadge}
                           </td>
 
                           {/* Barra de Progresso */}
-                          <td className="py-3.5 px-4">
+                          <td className="py-4 px-4">
                             <div className="flex items-center gap-3 min-w-[130px]">
-                              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full transition-all duration-300 ${
                                     contrato.status === 'atrasado'
                                       ? 'bg-[#E5392D]'
-                                      : 'bg-[#266DF0]'
+                                      : 'bg-[#1C1D1F]'
                                   }`}
                                   style={{ width: `${progresso}%` }}
                                 ></div>
                               </div>
-                              <span className="text-xs font-semibold font-mono text-slate-700 w-8 text-right">
+                              <span className="text-xs font-mono text-slate-600 w-8 text-right tabular-nums">
                                 {progresso}%
                               </span>
                             </div>
                           </td>
 
                           {/* Ação */}
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="inline-flex p-1 text-slate-400 group-hover:text-slate-700 transition-colors">
-                              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                          <td className="py-4 pl-3 pr-5 text-right">
+                            <span className="inline-flex p-1 text-slate-300 group-hover:text-slate-900 transition-colors">
+                              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                             </span>
                           </td>
                         </tr>
@@ -561,65 +567,69 @@ const Dashboard = () => {
       {/* CONTEÚDO DA ABA 2: ANÁLISE DE GARGALOS */}
       {abaAtiva === 'gargalos' && (
         <div className="space-y-6 animate-fade-in">
-          {/* CARDS DE RESUMO DE ATRASOS */}
+          {/* CARDS DE RESUMO DE ATRASOS — SEM CAIXAS DE ÍCONE COM BORDA */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Tarefas Vencidas</span>
-                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.01</span>
+                  <span className="text-xs font-medium text-slate-500">Tarefas Vencidas</span>
                 </div>
+                <AlertTriangle className="w-4 h-4 text-[#E5392D]" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold font-mono text-slate-900">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums">
                   {etapasAtrasadas.length.toString().padStart(2, '0')}
                 </span>
                 <span className="text-xs text-[#B42318] font-medium">pendentes</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Média de Atraso</span>
-                <div className="w-8 h-8 rounded-lg bg-[#F4F5F6] border border-[#E6E7EA] text-[#36383D] flex items-center justify-center">
-                  <Clock className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.02</span>
+                  <span className="text-xs font-medium text-slate-500">Média de Atraso</span>
                 </div>
+                <Clock className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold font-mono text-slate-900">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-slate-900 tabular-nums">
                   {gargalosInfo.mediaAtraso}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">dias por atividade</span>
+                <span className="text-xs text-slate-400">dias por atividade</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Maior Atraso Único</span>
-                <div className="w-8 h-8 rounded-lg bg-[#FFF0EE] border border-[#FFD4CE] text-[#B42318] flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.03</span>
+                  <span className="text-xs font-medium text-slate-500">Maior Atraso Único</span>
                 </div>
+                <AlertCircle className="w-4 h-4 text-[#E5392D]" strokeWidth={1.75} />
               </div>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span className="text-2xl font-bold font-mono text-[#B42318]">
+              <div className="mt-4 flex items-baseline gap-2.5">
+                <span className="font-display text-3xl font-semibold text-[#B42318] tabular-nums">
                   {gargalosInfo.maiorAtraso}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">dias no maior gargalo</span>
+                <span className="text-xs text-slate-400">dias no maior gargalo</span>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200/90 rounded-xl p-5 shadow-2xs">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">Maior Acúmulo</span>
-                <div className="w-8 h-8 rounded-lg bg-[#EEF4FF] border border-[#D4E2FF] text-[#266DF0] flex items-center justify-center">
-                  <User className="w-4 h-4" />
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-slate-400 tracking-[0.16em]">.04</span>
+                  <span className="text-xs font-medium text-slate-500">Maior Acúmulo</span>
                 </div>
+                <User className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
               </div>
-              <div className="mt-3">
-                <h4 className="text-sm font-bold text-slate-900 truncate" title={gargalosInfo.respCritico}>
+              <div className="mt-4">
+                <h4 className="font-display text-base font-semibold text-slate-900 truncate" title={gargalosInfo.respCritico}>
                   {gargalosInfo.respCritico}
                 </h4>
-                <span className="text-[11px] text-slate-500">responsável técnico</span>
+                <span className="text-[11px] text-slate-400">responsável técnico</span>
               </div>
             </div>
           </div>
@@ -628,9 +638,10 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             {/* Atraso por Colaborador */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col space-y-5">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-6 flex flex-col space-y-5">
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Demanda Acumulada por Responsável</h4>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">.05 / Equipe</span>
+                <h4 className="font-display text-sm font-semibold text-slate-900 mt-1">Demanda Acumulada por Responsável</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Dias de atraso somados por colaborador</p>
               </div>
 
@@ -647,14 +658,14 @@ const Dashboard = () => {
                     return (
                       <div key={colab.nome} className="space-y-1.5">
                         <div className="flex justify-between text-xs font-medium">
-                          <span className="text-slate-800 font-semibold">{colab.nome}</span>
+                          <span className="text-slate-800">{colab.nome}</span>
                           <span className="text-slate-500 font-mono">
-                            {colab.dias} dias ({colab.count} tarefas)
+                            {colab.dias}d ({colab.count})
                           </span>
                         </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#266DF0] rounded-full transition-all duration-500"
+                            className="h-full bg-[#1C1D1F] rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
                           ></div>
                         </div>
@@ -666,9 +677,10 @@ const Dashboard = () => {
             </div>
 
             {/* Atraso por Fase */}
-            <div className="bg-white border border-slate-200/90 rounded-xl p-6 shadow-xs flex flex-col space-y-5">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-6 flex flex-col space-y-5">
               <div>
-                <h4 className="text-sm font-bold text-slate-900">Atraso por Fase Operacional</h4>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">.06 / Etapas</span>
+                <h4 className="font-display text-sm font-semibold text-slate-900 mt-1">Atraso por Fase Operacional</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Dias de atraso acumulados em cada etapa do processo</p>
               </div>
 
@@ -685,10 +697,10 @@ const Dashboard = () => {
                     return (
                       <div key={fase.fase} className="space-y-1.5">
                         <div className="flex justify-between text-xs font-medium">
-                          <span className="text-slate-800 font-semibold">{fase.fase}</span>
+                          <span className="text-slate-800">{fase.fase}</span>
                           <span className="text-slate-500 font-mono">{fase.dias} dias</span>
                         </div>
-                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-[#1C1D1F] rounded-full transition-all duration-500"
                             style={{ width: `${percent}%` }}
@@ -704,11 +716,14 @@ const Dashboard = () => {
           </div>
 
           {/* TABELA DE ATIVIDADES VENCIDAS */}
-          <div className="bg-white border border-slate-200/90 rounded-xl shadow-xs overflow-hidden">
-            <div className="p-5 border-b border-slate-200/80">
-              <h3 className="text-base font-bold text-slate-900">
-                Detalhamento das Atividades Vencidas
-              </h3>
+          <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden">
+            <div className="p-5 border-b border-slate-200/70">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-400">.07</span>
+                <h3 className="font-display text-base font-semibold text-slate-900">
+                  Detalhamento das Atividades Vencidas
+                </h3>
+              </div>
               <p className="text-xs text-slate-500 mt-0.5">
                 Acompanhamento pontual de tarefas que necessitam de intervenção
               </p>
@@ -716,21 +731,21 @@ const Dashboard = () => {
 
             {etapasAtrasadas.length === 0 ? (
               <div className="text-center py-16 text-slate-700 text-sm flex flex-col items-center gap-2">
-                <CheckCircle className="w-8 h-8 text-[#12A150]" />
-                <span className="font-semibold">Excelente! Nenhuma atividade está atrasada no momento.</span>
+                <CheckCircle className="w-7 h-7 text-[#12A150]" strokeWidth={1.5} />
+                <span className="font-medium">Excelente! Nenhuma atividade está atrasada no momento.</span>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] uppercase font-semibold text-slate-500 tracking-wider">
-                      <th className="py-3 px-4">Tarefa / Etapa</th>
-                      <th className="py-3 px-4">Projeto & Fase</th>
-                      <th className="py-3 px-4">Responsável</th>
-                      <th className="py-3 px-4">Prazo Previsto</th>
-                      <th className="py-3 px-4">Atraso</th>
-                      <th className="py-3 px-4">Progresso</th>
-                      <th className="py-3 px-4 text-right">Ação</th>
+                    <tr className="border-b border-slate-200/80 font-mono text-[10px] uppercase font-medium text-slate-400 tracking-[0.16em]">
+                      <th className="py-3.5 px-5">Tarefa / Etapa</th>
+                      <th className="py-3.5 px-4">Projeto & Fase</th>
+                      <th className="py-3.5 px-4">Responsável</th>
+                      <th className="py-3.5 px-4">Prazo Previsto</th>
+                      <th className="py-3.5 px-4">Atraso</th>
+                      <th className="py-3.5 px-4">Progresso</th>
+                      <th className="py-3.5 px-5 text-right"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm">
@@ -738,37 +753,38 @@ const Dashboard = () => {
                       <tr
                         key={etapa.id}
                         onClick={() => navigate(`/contratos/${etapa.contrato_id}`)}
-                        className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
+                        className="hover:bg-slate-50/70 cursor-pointer transition-colors group"
                       >
-                        <td className="py-3.5 px-4 font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
+                        <td className="py-4 px-5 font-display font-semibold text-slate-900 group-hover:text-[#266DF0] transition-colors">
                           {etapa.nome_tarefa}
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <div className="font-medium text-slate-800 text-xs">{etapa.nome_projeto}</div>
                           <div className="text-[11px] text-slate-400 mt-0.5">{etapa.nome_fase}</div>
                         </td>
-                        <td className="py-3.5 px-4 text-xs font-medium text-slate-700">
+                        <td className="py-4 px-4 text-xs font-medium text-slate-700">
                           {etapa.responsavel}
                         </td>
-                        <td className="py-3.5 px-4 text-xs font-mono text-slate-600">
+                        <td className="py-4 px-4 text-xs font-mono text-slate-500">
                           {formatarData(etapa.data_termino)}
                         </td>
-                        <td className="py-3.5 px-4">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-[#FFF0EE] text-[#B42318] border border-[#FFD4CE] font-mono">
+                        <td className="py-4 px-4">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#B42318] font-mono">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#E5392D]" />
                             {etapa.dias_atraso}d de atraso
                           </span>
                         </td>
-                        <td className="py-3.5 px-4">
+                        <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
                               <div className="h-full bg-[#E5392D] rounded-full" style={{ width: `${etapa.progresso}%` }}></div>
                             </div>
-                            <span className="text-xs font-mono font-medium text-slate-500">{etapa.progresso}%</span>
+                            <span className="text-xs font-mono text-slate-500">{etapa.progresso}%</span>
                           </div>
                         </td>
-                        <td className="py-3.5 px-4 text-right">
-                          <span className="inline-flex p-1 text-slate-400 group-hover:text-slate-700 transition-colors">
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        <td className="py-4 px-5 text-right">
+                          <span className="inline-flex p-1 text-slate-300 group-hover:text-slate-900 transition-colors">
+                            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                           </span>
                         </td>
                       </tr>
